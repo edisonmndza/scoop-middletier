@@ -1,0 +1,20 @@
+{
+  "name": "registeruser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "express": "^4.16.4",
+    "pg": "^7.9.0",
+    "pg-hstore": "^2.3.2",
+    "pg-promise": "^8.6.4",
+    "sequelize": "^5.2.1",
+    "sequelize-auto": "^0.4.29"
+  }
+}
