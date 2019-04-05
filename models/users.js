@@ -5,7 +5,7 @@ module.exports = function(sequelize, DataTypes) {
     userid: {
       type: DataTypes.UUIDV4,
       allowNull: false,
-      defaultValue: sequelize.fn('uuid_generate_v4'),
+      defaultValue: sequelize.fn('no.uuid_generate_v4'),
       primaryKey: true
     },
     firstname: {
@@ -35,26 +35,22 @@ module.exports = function(sequelize, DataTypes) {
     genderid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'genders',
-        key: 'genderid'
-      }
+      primaryKey: true
     },
     divisionid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'divisions',
-        key: 'divisionid'
-      }
+      primaryKey: true
     },
     buildingid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'buildings',
-        key: 'buildingid'
-      }
+      primaryKey: true
+    },
+    positionid: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      primaryKey: true
     },
     positionid: {
       type: DataTypes.INTEGER,
@@ -103,7 +99,12 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
+<<<<<<< HEAD
     schema: 'scoop',
     tableName: 'users'
+=======
+    tableName: 'users',
+    schema: 'scoop'
+>>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
   });
 };

@@ -16,8 +16,12 @@ app.listen(3000, () => {
 app.get("/", (req, res) => {
     res.send("Node.js Test Server")
 });
-  
-// Register the user
-app.use("/register", require('./routes/registration'));
+<<<<<<< HEAD
 
 app.use("/edituser", require('./routes/edituser'));
+=======
+
+app.use("/signup", require('./routes/signup.js'));
+
+app.use("/notifications", require('./routes/notifications.js'));
+>>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a

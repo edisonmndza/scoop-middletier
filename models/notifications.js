@@ -5,7 +5,11 @@ module.exports = function(sequelize, DataTypes) {
     notificationid: {
       type: DataTypes.UUIDV4,
       allowNull: false,
+<<<<<<< HEAD
       defaultValue: sequelize.fn('uuid_generate_v4'),
+=======
+      defaultValue: sequelize.fn('no.uuid_generate_v4'),
+>>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
       primaryKey: true
     },
     userid: {
@@ -16,7 +20,11 @@ module.exports = function(sequelize, DataTypes) {
         key: 'userid'
       }
     },
+<<<<<<< HEAD
     activityid: {
+=======
+    activivityid: {
+>>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
       type: DataTypes.UUIDV4,
       allowNull: true,
       references: {
@@ -48,7 +56,10 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.fn('now')
     }
   }, {
+<<<<<<< HEAD
     schema: 'scoop',
+=======
+>>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
     tableName: 'notifications'
   });
 };
