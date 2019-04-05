@@ -19,3 +19,5 @@ app.get("/", (req, res) => {
   
 // Register the user
 app.use("/register", require('./routes/registration'));
+
+app.use("/edituser", require('./routes/edituser'));

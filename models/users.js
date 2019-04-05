@@ -32,7 +32,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATEONLY,
       allowNull: true
     },
-    gender: {
+    genderid: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -54,6 +54,14 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'buildings',
         key: 'buildingid'
+      }
+    },
+    positionid: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'positions',
+        key: 'positionid'
       }
     },
     profileimage: {
@@ -95,6 +103,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
+    schema: 'scoop',
     tableName: 'users'
   });
 };
