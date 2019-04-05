@@ -5,7 +5,7 @@ module.exports = function(sequelize, DataTypes) {
     userid: {
       type: DataTypes.UUIDV4,
       allowNull: false,
-      defaultValue: sequelize.fn('uuid_generate_v4'),
+      defaultValue: sequelize.fn('no.uuid_generate_v4'),
       primaryKey: true
     },
     firstname: {
@@ -32,29 +32,25 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATEONLY,
       allowNull: true
     },
-    gender: {
+    genderid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'genders',
-        key: 'genderid'
-      }
+      primaryKey: true
     },
     divisionid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'divisions',
-        key: 'divisionid'
-      }
+      primaryKey: true
     },
     buildingid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'buildings',
-        key: 'buildingid'
-      }
+      primaryKey: true
+    },
+    positionid: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      primaryKey: true
     },
     profileimage: {
       type: "BYTEA",
