@@ -13,10 +13,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-<<<<<<< HEAD
     schema: 'scoop',
-=======
->>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
     tableName: 'positions'
   });
 };

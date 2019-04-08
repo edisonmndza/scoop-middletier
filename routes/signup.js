@@ -32,6 +32,7 @@ function checkHashPassword(userPassword, salt){
 
 router.post("/register", (request, response) => {
     const {firstname, lastname, email, password} = request.body
+    var defaultImagePath = "./pictures/profilepictures/default.png"
     
     // Encrypting the password
     passwordData = saltHashPassword(password)
@@ -42,7 +43,9 @@ router.post("/register", (request, response) => {
         lastname: lastname,
         email: email,
         salt: passwordData.salt,
-        passwordhash: passwordData.passwordHash
+        passwordhash: passwordData.passwordHash,
+        profileimage: defaultImagePath,
+        userstatus: 1
     }).then( () => {
         userModel.findAll({
             attributes:['userid'],

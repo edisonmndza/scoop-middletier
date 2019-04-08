@@ -1,11 +1,13 @@
 // Importing libraries
 const express = require('express');
 const bodyparser = require('body-parser')
+
+express.bodyparser 
 const app = express();
 
 // Using body-parser
-app.use(bodyparser.json())
-app.use(bodyparser.urlencoded({extended: true}))
+app.use(bodyparser.json({limit: '50mb'}))
+app.use(bodyparser.urlencoded({limit: '50mb', extended: true}))
 
 // Setting up the port for the server to listen on
 app.listen(3000, () => {
@@ -16,12 +18,9 @@ app.listen(3000, () => {
 app.get("/", (req, res) => {
     res.send("Node.js Test Server")
 });
-<<<<<<< HEAD
 
 app.use("/edituser", require('./routes/edituser'));
-=======
 
 app.use("/signup", require('./routes/signup.js'));
 
 app.use("/notifications", require('./routes/notifications.js'));
->>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a

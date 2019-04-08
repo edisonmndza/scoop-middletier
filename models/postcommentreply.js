@@ -5,11 +5,7 @@ module.exports = function(sequelize, DataTypes) {
     activityid: {
       type: DataTypes.UUIDV4,
       allowNull: false,
-<<<<<<< HEAD
       defaultValue: sequelize.fn('uuid_generate_v4'),
-=======
-      defaultValue: sequelize.fn('no.uuid_generate_v4'),
->>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
       primaryKey: true
     },
     posttitle: {
@@ -40,10 +36,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.fn('now')
     }
   }, {
-<<<<<<< HEAD
     schema: 'scoop',
-=======
->>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
     tableName: 'postcommentreply'
   });
 };

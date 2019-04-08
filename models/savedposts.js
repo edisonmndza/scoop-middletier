@@ -25,10 +25,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '1'
     }
   }, {
-<<<<<<< HEAD
     schema: 'scoop',
-=======
->>>>>>> f1b90cb4b960a3b5ee4bf0ce35eda18c376c080a
     tableName: 'savedposts'
   });
 };
