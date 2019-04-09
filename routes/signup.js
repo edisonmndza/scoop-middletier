@@ -57,9 +57,18 @@ router.post("/register", (request, response) => {
           }
         })
         .then(results => {
-          const userid = results[0].userid;
-          console.log(request.sessionID);
-          response.send(`Success ${userid.toString()}`);
+        const userid = results[0].userid; // grabbing the user id
+
+        // validing a token for the successfully signed up user
+        // token payload contains the user id
+        jwt.sign({userid: userid}, 'secretkey', (err, token) => {
+            console.log(userid); // user id
+            console.log(token); // token that was created
+            response.send(token); // send the token as the server response to a successful register
+        });
+
+        //   console.log(request.sessionID);
+        //   response.send(`Success ${userid.toString()}`);
         });
     });
 });
@@ -82,13 +91,11 @@ router.post("/login", (request, response) => {
         // on successful log in
         console.log(userid.toString());
 
-        // TODO: TESTING JWT TOKENS
-        // sending user information in the token payload
-        // jwt.sign({ payload }, secret key (can be any string), callback function)
-        // token contains all the information we need to make a request
-        jwt.sign({userid: userid.toString()}, 'secretkey', (err, token) => {
+        // signing a jwt token for the user that has successfully logged in
+        // storing their user id in the token payload
+        jwt.sign({userid: userid}, 'secretkey', (err, token) => {
           console.log(token);
-          response.json(token);
+          response.json(token); // server sends the token containing the user id as a response
         });
 
         // response.send(`Success ${userid.toString()}`);

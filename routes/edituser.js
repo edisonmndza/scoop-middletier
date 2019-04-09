@@ -11,6 +11,7 @@ const router = express.Router()
 
 // Route for getting the intitial information when the user edits the profile
 router.get("/getinitial/:userid", (request, response) => {
+
     // Gets the user id from app
     const userid = request.params.userid
 

@@ -1,6 +1,7 @@
 // Importing libraries
 const express = require('express');
 const bodyparser = require('body-parser')
+const jwt = require("jsonwebtoken");
 
 express.bodyparser 
 const app = express();
