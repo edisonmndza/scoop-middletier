@@ -24,3 +24,5 @@ app.use("/edituser", require('./routes/edituser'));
 app.use("/signup", require('./routes/signup.js'));
 
 app.use("/notifications", require('./routes/notifications.js'));
+
+app.use("/profile", require('./routes/profile'))
