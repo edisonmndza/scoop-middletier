@@ -6,14 +6,13 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.UUIDV4,
       allowNull: false,
       defaultValue: sequelize.fn('uuid_generate_v4'),
-      primaryKey: true,
-      field: 'likeid'
+      primaryKey: true
     },
     activityid: {
       type: DataTypes.UUIDV4,
       allowNull: true,
       references: {
-        model: 'postcommentreply',
+        model: 'postcomment',
         key: 'activityid'
       },
       field: 'activityid'
@@ -47,10 +46,10 @@ module.exports = function(sequelize, DataTypes) {
     modifieddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'modifieddate'
+      defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'likes'
   });
 };

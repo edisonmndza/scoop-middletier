@@ -6,20 +6,18 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      field: 'socialmediaid'
+      autoIncrement: true
     },
     socialmedianame: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'socialmedianame'
+      allowNull: true
     },
     socialmediasymbol: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'socialmediasymbol'
+      type: "BYTEA",
+      allowNull: true
     }
   }, {
-    tableName: 'socialmedia'
+    tableName: 'socialmedia',
+    schema: 'scoop'
   });
 };

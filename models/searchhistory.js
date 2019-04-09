@@ -6,8 +6,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      field: 'searchhistoryid'
+      autoIncrement: true
     },
     userid: {
       type: DataTypes.UUIDV4,
@@ -15,27 +14,24 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'users',
         key: 'userid'
-      },
-      field: 'userid'
+      }
     },
     usersearch: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'usersearch'
+      allowNull: true
     },
     activestatus: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: '1',
-      field: 'activestatus'
+      defaultValue: '1'
     },
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'createddate'
+      defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'searchhistory'
   });
 };

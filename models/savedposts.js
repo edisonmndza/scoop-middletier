@@ -9,8 +9,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'postcommentreply',
         key: 'activityid'
-      },
-      field: 'activityid'
+      }
     },
     userid: {
       type: DataTypes.UUIDV4,
@@ -18,16 +17,15 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'users',
         key: 'userid'
-      },
-      field: 'userid'
+      }
     },
     activestatus: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: '1',
-      field: 'activestatus'
+      defaultValue: '1'
     }
   }, {
+    schema: 'scoop',
     tableName: 'savedposts'
   });
 };

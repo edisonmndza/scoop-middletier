@@ -6,15 +6,14 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      field: 'positionid'
+      autoIncrement: true
     },
     positionname: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'positionname'
+      allowNull: true
     }
   }, {
+    schema: 'scoop',
     tableName: 'positions'
   });
 };

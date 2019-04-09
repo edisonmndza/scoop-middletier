@@ -6,40 +6,34 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      field: 'buildingid'
+      autoIncrement: true
     },
-    buildingnameEn: {
+    buildingname_en: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'buildingname_en'
+      allowNull: true
     },
-    buildingnameFr: {
+    buildingname_fr: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'buildingname_fr'
+      allowNull: true
     },
     address: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'address'
+      allowNull: true
     },
     city: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'city'
+      allowNull: true
     },
     province: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'province'
+      allowNull: true
     },
     postalcode: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'postalcode'
+      allowNull: true
     }
   }, {
+    schema: 'scoop',
     tableName: 'buildings'
   });
 };

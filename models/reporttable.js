@@ -9,8 +9,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'postcommentreply',
         key: 'activityid'
-      },
-      field: 'activityid'
+      }
     },
     userid: {
       type: DataTypes.UUIDV4,
@@ -18,27 +17,24 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'users',
         key: 'userid'
-      },
-      field: 'userid'
+      }
     },
     reason: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'reason'
+      allowNull: true
     },
     activestatus: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: '1',
-      field: 'activestatus'
+      defaultValue: '1'
     },
     datecreated: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'datecreated'
+      defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'reporttable'
   });
 };

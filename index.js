@@ -1,6 +1,8 @@
 // Importing libraries
 const express = require('express');
 const bodyparser = require('body-parser')
+
+express.bodyparser 
 const app = express();
 
 // Using body-parser
@@ -25,3 +27,7 @@ app.use("/add-post", require('./routes/add-post'));
 
 // Add a comment
 app.use("/add-comment", require('./routes/add-comment'));
+
+app.use("/edituser", require('./routes/edituser'));
+
+app.use("/notifications", require('./routes/notifications.js'));

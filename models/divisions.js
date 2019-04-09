@@ -6,32 +6,28 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      field: 'divisionid'
+      autoIncrement: true
     },
-    divisionEn: {
+    division_en: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'division_en'
+      allowNull: true
     },
-    divisionFr: {
+    division_fr: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'division_fr'
+      allowNull: true
     },
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'createddate'
+      defaultValue: sequelize.fn('now')
     },
     modifieddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'modifieddate'
+      defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'divisions'
   });
 };

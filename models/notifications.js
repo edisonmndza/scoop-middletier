@@ -7,7 +7,9 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: sequelize.fn('uuid_generate_v4'),
       primaryKey: true,
-      field: 'notificationid'
+      field: 'notificationid',
+      defaultValue: sequelize.fn('uuid_generate_v4'),
+      primaryKey: true
     },
     userid: {
       type: DataTypes.UUIDV4,
@@ -15,10 +17,9 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'users',
         key: 'userid'
-      },
-      field: 'userid'
+      }
     },
-    activivityid: {
+    activityid: {
       type: DataTypes.UUIDV4,
       allowNull: true,
       references: {
@@ -51,10 +52,10 @@ module.exports = function(sequelize, DataTypes) {
     modifieddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'modifieddate'
+      defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'notifications'
   });
 };

@@ -6,20 +6,18 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      field: 'genderid'
+      autoIncrement: true
     },
     gendername: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'gendername'
+      allowNull: true
     },
     genderinfo: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'genderinfo'
+      allowNull: true
     }
   }, {
+    schema: 'scoop',
     tableName: 'genders'
   });
 };

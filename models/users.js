@@ -60,11 +60,12 @@ module.exports = function(sequelize, DataTypes) {
     buildingid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'buildings',
-        key: 'buildingid'
-      },
-      field: 'buildingid'
+      primaryKey: true
+    },
+    positionid: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      primaryKey: true
     },
     positionid: {
       type: DataTypes.INTEGER,
@@ -72,13 +73,11 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'positions',
         key: 'positionid'
-      },
-      field: 'positionid'
+      }
     },
     profileimage: {
-      type: "BYTEA",
-      allowNull: true,
-      field: 'profileimage'
+      type: DataTypes.STRING,
+      allowNull: true
     },
     createddate: {
       type: DataTypes.DATE,
