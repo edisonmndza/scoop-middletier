@@ -11,6 +11,9 @@
   "dependencies": {
     "crypto": "^1.0.1",
     "express": "^4.16.4",
+    "fd": "0.0.3",
+    "fs": "0.0.1-security",
+    "mkdirp": "^0.5.1",
     "pg": "^7.9.0",
     "pg-hstore": "^2.3.2",
     "pg-promise": "^8.6.4",
