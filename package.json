@@ -12,6 +12,7 @@
     "async": "^2.6.2",
     "crypto": "^1.0.1",
     "express": "^4.16.4",
+    "mkdirp": "^0.5.1",
     "fs": "0.0.1-security",
     "pg": "^7.9.0",
     "pg-hstore": "^2.3.2",

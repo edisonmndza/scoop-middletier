@@ -18,9 +18,16 @@ app.listen(3000, () => {
 app.get("/", (req, res) => {
     res.send("Node.js Test Server")
 });
+  
+// Register the user
+app.use("/signup", require('./routes/signup'));
+
+// Add a post
+app.use("/add-post", require('./routes/add-post'));
+
+// Add a comment
+app.use("/add-comment", require('./routes/add-comment'));
 
 app.use("/edituser", require('./routes/edituser'));
-
-app.use("/signup", require('./routes/signup.js'));
 
 app.use("/notifications", require('./routes/notifications.js'));
