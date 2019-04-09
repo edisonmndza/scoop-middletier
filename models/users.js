@@ -6,41 +6,56 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.UUIDV4,
       allowNull: false,
       defaultValue: sequelize.fn('uuid_generate_v4'),
-      primaryKey: true
+      primaryKey: true,
+      field: 'userid'
     },
     firstname: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      field: 'firstname'
     },
     lastname: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      field: 'lastname'
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      field: 'email'
     },
     passwordhash: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      field: 'passwordhash'
     },
     salt: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      field: 'salt'
     },
     dateofbirth: {
       type: DataTypes.DATEONLY,
-      allowNull: true
+      allowNull: true,
+      field: 'dateofbirth'
     },
     genderid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      primaryKey: true
+      references: {
+        model: 'genders',
+        key: 'genderid'
+      },
+      field: 'genderid'
     },
     divisionid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      primaryKey: true
+      references: {
+        model: 'divisions',
+        key: 'divisionid'
+      },
+      field: 'divisionid'
     },
     buildingid: {
       type: DataTypes.INTEGER,
@@ -67,23 +82,27 @@ module.exports = function(sequelize, DataTypes) {
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now')
+      defaultValue: sequelize.fn('now'),
+      field: 'createddate'
     },
     modifieddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now')
+      defaultValue: sequelize.fn('now'),
+      field: 'modifieddate'
     },
     modifiedby: {
       type: DataTypes.UUIDV4,
-      allowNull: true
+      allowNull: true,
+      field: 'modifiedby'
     },
     userstatus: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
+      field: 'userstatus'
     }
   }, {
-    schema: 'scoop',
-    tableName: 'users'
+    tableName: 'users',
+    schema: 'scoop'
   });
 };

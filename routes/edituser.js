@@ -87,7 +87,7 @@ router.get("/divisionchanged/:division", (request, response) => {
 // Updates db with all changed information
 router.put("/updatedatabase", (request, response) => {
     // Gets the data from all the edit texts from the app
-    const {userid, firstname, lastname, position, division, building, linkedin, twitter, facebook, city, province, image} = request.body
+    const {userid, firstname, lastname, position, division, building, linkedin, twitter, facebook, instagram, city, province, image} = request.body
     
     // variables for the ids
     var positionid, buildingid, divisionid;
@@ -131,7 +131,7 @@ router.put("/updatedatabase", (request, response) => {
     })
 
     // Promise for inputting all the user's social medias into the user social table
-    Promise.all([facebookReturned(userid, facebook), twitterReturned(userid, twitter), linkedinReturned(userid, linkedin)])
+    Promise.all([facebookReturned(userid, facebook), twitterReturned(userid, twitter), linkedinReturned(userid, linkedin), instagramReturned(userid, instagram)])
 })
 
 // Function to help concatenate the json array on initial fill
@@ -195,6 +195,28 @@ const facebookReturned = (userid, facebook) => {
         else if (!found && facebook !== "") {
             userSocialModel.create({socialmediaid: 1, userid: userid, url: facebook, activestatus: 1})
         }
+    })
+}
+
+const instagramReturned = (userid, instagram) => {
+    return userSocialModel.findOne({
+        where: {
+            userid: userid,
+            socialmediaid: 2
+        }
+    }).then(function(found) {
+        if (found && instagram !== "") {
+            userSocialModel.update({url: instagram, activestatus: 1}, {where: {userid: userid, socialmediaid: 2}})
+        }
+
+        else if (found && instagram === "") {
+            userSocialModel.update({activestatus: 0}, {where: {userid: userid, socialmediaid: 2}})
+        }
+
+        else if (!found && instagram !== "") {
+            userSocialModel.create({socialmediaid: 2, userid: userid, url: instagram, activestatus: 1})
+        }
+
     })
 }
 

@@ -12,23 +12,36 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.UUIDV4,
       allowNull: true,
       references: {
-        model: 'postcommentreply',
+        model: 'postcomment',
         key: 'activityid'
-      }
+      },
+      field: 'activityid'
+    },
+    userid: {
+      type: DataTypes.UUIDV4,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'userid'
+      },
+      field: 'userid'
     },
     liketype: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
+      field: 'liketype'
     },
     activestatus: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: '1'
+      defaultValue: '1',
+      field: 'activestatus'
     },
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now')
+      defaultValue: sequelize.fn('now'),
+      field: 'createddate'
     },
     modifieddate: {
       type: DataTypes.DATE,
