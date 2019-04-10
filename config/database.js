@@ -5,10 +5,10 @@ const Sequelize = require ("sequelize");
 // setting up the connection to the postgres database
 
 
-const db = new Sequelize("scoop", "scoop", "password", {
+const db = new Sequelize("scoop", "postgres", "password", {
 
   host: "localhost",
-  port: "5434",
+  port: "5432",
   dialect: "postgres",
   operatorAliases: false,
   define: {
