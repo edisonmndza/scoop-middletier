@@ -3,7 +3,11 @@ const database = require("../config/database");
 const userModel = database.import("../models/users");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const fs = require("fs");
 const router = express.Router();
+
+var path = "../scoop-middle-tier/private.key";
+var privatekey = fs.readFileSync(path, "utf8");
 
 var genRandomString = function(length) {
   return crypto
@@ -57,18 +61,18 @@ router.post("/register", (request, response) => {
           }
         })
         .then(results => {
-        const userid = results[0].userid; // grabbing the user id
+          const userid = results[0].userid; // grabbing the user id
 
-        // validing a token for the successfully signed up user
-        // token payload contains the user id
-        jwt.sign({userid: userid}, 'secretkey', (err, token) => {
+          // validing a token for the successfully signed up user
+          // token payload contains the user id
+          jwt.sign({ userid: userid }, privatekey, (err, token) => {
+            if (err) {
+              console.log(err);
+            }
             console.log(userid); // user id
             console.log(token); // token that was created
             response.send(token); // send the token as the server response to a successful register
-        });
-
-        //   console.log(request.sessionID);
-        //   response.send(`Success ${userid.toString()}`);
+          });
         });
     });
 });
@@ -93,12 +97,13 @@ router.post("/login", (request, response) => {
 
         // signing a jwt token for the user that has successfully logged in
         // storing their user id in the token payload
-        jwt.sign({userid: userid}, 'secretkey', (err, token) => {
+        jwt.sign({ userid: userid }, privatekey, (err, token) => {
+          if (err) {
+            console.log(err);
+          }
           console.log(token);
           response.json(token); // server sends the token containing the user id as a response
         });
-
-        // response.send(`Success ${userid.toString()}`);
       } else {
         response.send("Incorrect Password");
       }
@@ -110,22 +115,5 @@ router.post("/login", (request, response) => {
       }
     });
 });
-
-// need to verify the user on every single request to make sure that it is an authorized connection
-router.post("/logout", (request, response) => {
-  const token = request.headers['authorization'].split(" ")[1]; // grabbing the token from the request header
-  const finaltoken = token.match(/(?:"[^"]*"|^[^"]*$)/)[0].replace(/"/g, ""); // to remove the double quotations from the token
-
-  // verifying the token that was grabbed from the request header
-  jwt.verify(finaltoken, 'secretkey', (err, authData) => {
-    if (err) {
-      // token is wrong
-      console.log("Error");
-    } else {
-      // token is verified
-      console.log(authData.userid);
-    }
-  })
-})
 
 module.exports = router;
