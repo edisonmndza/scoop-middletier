@@ -1,5 +1,5 @@
 // Importing libraries
-const Sequelize = require("sequelize");
+const Sequelize = require ("sequelize");
 
 
 // setting up the connection to the postgres database
@@ -9,8 +9,11 @@ const db = new Sequelize("scoopDB", "postgres", "123456", {
   dialect: "postgres",
   operatorAliases: false,
   define: {
-    timestamps: false
+    timestamps: false,
+    schema: "scoop"
   },
+
+  
 
   // to keep database connections open so they can be reused by others
   pool: {
