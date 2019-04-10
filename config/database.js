@@ -8,8 +8,11 @@ const db = new Sequelize("postgres", "postgres", "123456", {
   dialect: "postgres",
   operatorAliases: false,
   define: {
-    timestamps: false
+    timestamps: false,
+    schema: "scoop"
   },
+
+  
 
   // to keep database connections open so they can be reused by others
   pool: {
