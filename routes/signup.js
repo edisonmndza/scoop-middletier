@@ -10,23 +10,23 @@ var genRandomString = function(length){
 }
 
 var sha512 = function(password, salt) {
-    var hash = crypto.createHmac('sha512', salt);
-    hash.update(password);
-    var value= hash.digest('hex');
-    return {
-        salt: salt,
+    var hash = crypto.createHmac('sha512', salt); //passes in the type of sha2 and the randomly generated salt
+    hash.update(password); //updates the hash with the password
+    var value= hash.digest('hex'); //computes the hash and stores it in variable value
+    return {//returns an object with salt and passwordHash
+        salt: salt, 
         passwordHash: value
     };
 }
 
 function saltHashPassword(userPassword){
     var salt = genRandomString(16); //creates 16 random characters
-    var passwordData = sha512(userPassword, salt);
+    var passwordData = sha512(userPassword, salt); //gets passwordData from the sha512 function
     return passwordData;
 }
 
 function checkHashPassword(userPassword, salt){
-    var passwordData = sha512(userPassword, salt);
+    var passwordData = sha512(userPassword, salt); //gets passwordData from sha 512 function
     return passwordData;
 }
 
@@ -60,6 +60,7 @@ router.post("/register", (request, response) => {
 router.post("/login", (request, response)=>{
     const{email, password} = request.body
 
+    //finds the email if exists in the user table
     userModel.findAll({
         attributes:['userid', 'passwordhash', 'salt'],
         where:{
@@ -67,22 +68,22 @@ router.post("/login", (request, response)=>{
         }
     
     }).then(result => {
-        salt = result[0].salt;
-        pw = result[0].passwordhash;
-        userid = result[0].userid;
+        salt = result[0].salt; //gets the salt from the result
+        pw = result[0].passwordhash; //gets the password from the result
+        userid = result[0].userid; //gets the user id from the result
         passwordData = checkHashPassword(password, salt);
-        if(pw==passwordData.passwordHash){
+        if(pw==passwordData.passwordHash){ //if password hash in database matches what was entered
             console.log(userid.toString());
-            response.send(`Success ${userid.toString()}`);
+            response.send(`Success ${userid.toString()}`); //sends a success message and user id
         }
         else{
             response.send("Incorrect Password");
         }
     
-    }).catch(function(err){
+    }).catch(function(err){ //if there is no such email
         if(err){
             console.log(err);
-            response.send("Invalid Email");
+            response.send("Invalid Email"); //sends back invalid email
         }
     });  
 })
