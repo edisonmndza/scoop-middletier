@@ -86,7 +86,7 @@ router.get("/divisionchanged/:division", (request, response) => {
 // Updates db with all changed information
 router.put("/updatedatabase", (request, response) => {
     // Gets the data from all the edit texts from the app
-    const {userid, firstname, lastname, position, division, building, linkedin, twitter, facebook, city, province, image} = request.body
+    const {userid, firstname, lastname, position, division, building, linkedin,instagram, twitter, facebook, city, province, image} = request.body
     
     // variables for the ids
     var positionid, buildingid, divisionid;
@@ -130,7 +130,7 @@ router.put("/updatedatabase", (request, response) => {
     })
 
     // Promise for inputting all the user's social medias into the user social table
-    Promise.all([facebookReturned(userid, facebook), twitterReturned(userid, twitter), linkedinReturned(userid, linkedin)])
+    Promise.all([facebookReturned(userid, facebook), twitterReturned(userid, twitter), linkedinReturned(userid, linkedin), instagramReturned(userid, instagram)])
 })
 
 // Function to help concatenate the json array on initial fill
@@ -196,6 +196,31 @@ const facebookReturned = (userid, facebook) => {
         }
     })
 }
+
+// Function to update the twitter status on the usersocial table
+const instagramReturned = (userid, instagram) => {
+    // Finding the users social media (twitter)
+    return userSocialModel.findOne({
+        where: {
+            userid: userid,
+            socialmediaid: 2
+        }
+    }).then(function(found) {
+        // Changing the twitter url
+        if (found && instagram !== "") {
+            userSocialModel.update({url: instagram, activestatus: 1}, {where: {userid: userid, socialmediaid: 2}})
+        } 
+        // Deleting the twitter url
+        else if (found && instagram === "") {
+            userSocialModel.update({activestatus: 0}, {where: {userid: userid, socialmediaid:2}})
+        } 
+        // Inputting a new url
+        else if (!found && instagram !== "") {
+            userSocialModel.create({socialmediaid: 2, userid: userid, url: instagram, activestatus: 1})
+        }
+    })
+}
+
 
 // Function to update the twitter status on the usersocial table
 const twitterReturned = (userid, twitter) => {
