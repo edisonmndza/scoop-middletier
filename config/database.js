@@ -1,9 +1,13 @@
 // Importing libraries
-const Sequelize = require("sequelize");
+const Sequelize = require ("sequelize");
 
 
 // setting up the connection to the postgres database
-const db = new Sequelize('scoop', "postgres", "password", {
+<<<<<<< HEAD
+const db = new Sequelize("postgres", "postgres", "123456", {
+=======
+const db = new Sequelize("scoopdb", "postgres", "123456", {
+>>>>>>> 185864b4bca5fc97df53374c20b0a458bd272b4d
   host: "localhost",
   port: "5432",
   dialect: "postgres",

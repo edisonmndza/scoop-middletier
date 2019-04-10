@@ -29,6 +29,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '1'
     }
   }, {
+    schema: 'scoop',
     tableName: 'usersocial'
   });
 };

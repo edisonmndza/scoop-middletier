@@ -27,6 +27,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'divisions'
   });
 };

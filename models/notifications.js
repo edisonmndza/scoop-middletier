@@ -5,7 +5,10 @@ module.exports = function(sequelize, DataTypes) {
     notificationid: {
       type: DataTypes.UUIDV4,
       allowNull: false,
-      defaultValue: sequelize.fn('no.uuid_generate_v4'),
+      defaultValue: sequelize.fn('uuid_generate_v4'),
+      primaryKey: true,
+      field: 'notificationid',
+      defaultValue: sequelize.fn('uuid_generate_v4'),
       primaryKey: true
     },
     userid: {
@@ -16,13 +19,14 @@ module.exports = function(sequelize, DataTypes) {
         key: 'userid'
       }
     },
-    activivityid: {
+    activityid: {
       type: DataTypes.UUIDV4,
       allowNull: true,
       references: {
         model: 'postcommentreply',
         key: 'activityid'
-      }
+      },
+      field: 'activivityid'
     },
     likeid: {
       type: DataTypes.UUIDV4,
@@ -30,17 +34,20 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'likes',
         key: 'likeid'
-      }
+      },
+      field: 'likeid'
     },
     activestatus: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: '1'
+      defaultValue: '1',
+      field: 'activestatus'
     },
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now')
+      defaultValue: sequelize.fn('now'),
+      field: 'createddate'
     },
     modifieddate: {
       type: DataTypes.DATE,
@@ -48,6 +55,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.fn('now')
     }
   }, {
+    schema: 'scoop',
     tableName: 'notifications'
   });
 };
