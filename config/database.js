@@ -3,17 +3,14 @@ const Sequelize = require ("sequelize");
 
 
 // setting up the connection to the postgres database
-<<<<<<< HEAD
-const db = new Sequelize("postgres", "postgres", "123456", {
-=======
-const db = new Sequelize("scoopdb", "postgres", "123456", {
->>>>>>> 185864b4bca5fc97df53374c20b0a458bd272b4d
+const db = new Sequelize("scoopDB", "postgres", "123456", {
   host: "localhost",
-  port: "5432",
+  port: "5434",
   dialect: "postgres",
   operatorAliases: false,
   define: {
-    timestamps: false
+    timestamps: false,
+    schema: "scoop"
   },
 
   // to keep database connections open so they can be reused by others
