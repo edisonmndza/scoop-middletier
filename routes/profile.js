@@ -27,8 +27,13 @@ router.get("/initialfill/:userid", (request, response) => {
         buildingid = result.buildingid
     }).then( () => {
         Promise.all([getPositionName(positionid), getDivisionName(divisionid), getBuilding(buildingid), initialSocial(userid)]).then(result => {
-            city = result[2].city
-            province = result[2].province
+            if (result[2] !== null) {
+                city = result[2].city
+                province = result[2].province
+            } else {
+                city = null;
+                province = null;
+            }
             console.log(result[3])
             object = {fullname: fullName, profileimage: base64data, position: result[0], division: result[1], city, province}
             output = jsonConcat(object, output)
