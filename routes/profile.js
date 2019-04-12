@@ -7,8 +7,9 @@ const userSocialModel = database.import('../models/usersocial')
 const positionModel = database.import('../models/positions')
 const divisionModel = database.import('../models/divisions')
 const buildingModel = database.import('../models/buildings')
+const authorization = require("../config/token-verification");
 
-router.get("/initialfill/:userid", (request, response) => {
+router.get("/initialfill/:userid", authorization, (request, response) => {
     const userid = request.params.userid
     var imagePath, imageFile, base64data, fullName, positionid, divisionid, buildingid, city, province, object;
     var output = {}
@@ -34,7 +35,6 @@ router.get("/initialfill/:userid", (request, response) => {
                 city = null;
                 province = null;
             }
-            console.log(result[3])
             object = {fullname: fullName, profileimage: base64data, position: result[0], division: result[1], city, province}
             output = jsonConcat(object, output)
             output = jsonConcat(result[3], output)

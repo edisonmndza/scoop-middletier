@@ -1,6 +1,5 @@
 // Importing libraries
-const Sequelize = require ("sequelize");
-
+const Sequelize = require("sequelize");
 
 // setting up the connection to the postgres database
 const db = new Sequelize("scoopDB", "postgres", "123456", {
@@ -13,8 +12,6 @@ const db = new Sequelize("scoopDB", "postgres", "123456", {
     schema: "scoop"
   },
 
-  
-
   // to keep database connections open so they can be reused by others
   pool: {
     max: 10,
@@ -23,7 +20,6 @@ const db = new Sequelize("scoopDB", "postgres", "123456", {
     idle: 10000
   }
 });
-
 
 // Exporting database to be used in other .js files
 module.exports = db;
