@@ -31,4 +31,6 @@ app.use("/add-comment", require("./routes/add-comment"));
 
 app.use("/edituser", require("./routes/edituser"));
 
-app.use("/notifications", require("./routes/notifications.js"));
+app.use("/notifications", require('./routes/notifications.js'));
+
+app.use("/profile", require('./routes/profile'))
