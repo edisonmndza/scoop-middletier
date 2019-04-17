@@ -6,9 +6,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.UUIDV4,
       allowNull: false,
       defaultValue: sequelize.fn('uuid_generate_v4'),
-      primaryKey: true,
-      field: 'notificationid',
-      defaultValue: sequelize.fn('uuid_generate_v4'),
       primaryKey: true
     },
     userid: {
@@ -23,10 +20,9 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.UUIDV4,
       allowNull: true,
       references: {
-        model: 'postcommentreply',
+        model: 'postcomment',
         key: 'activityid'
-      },
-      field: 'activivityid'
+      }
     },
     likeid: {
       type: DataTypes.UUIDV4,
@@ -34,20 +30,17 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'likes',
         key: 'likeid'
-      },
-      field: 'likeid'
+      }
     },
     activestatus: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: '1',
-      field: 'activestatus'
+      defaultValue: '1'
     },
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'createddate'
+      defaultValue: sequelize.fn('now')
     },
     modifieddate: {
       type: DataTypes.DATE,

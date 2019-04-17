@@ -17,7 +17,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-    tableName: 'socialmedia',
-    schema: 'scoop'
+    schema: 'scoop',
+    tableName: 'socialmedia'
   });
 };

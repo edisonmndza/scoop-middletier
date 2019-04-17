@@ -7,7 +7,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true,
       references: {
-        model: 'postcommentreply',
+        model: 'postcomment',
         key: 'activityid'
       }
     },

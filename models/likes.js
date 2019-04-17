@@ -14,8 +14,26 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'postcomment',
         key: 'activityid'
-      },
-      field: 'activityid'
+      }
+    },
+    liketype: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    activestatus: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: '1'
+    },
+    createddate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: sequelize.fn('now')
+    },
+    modifieddate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: sequelize.fn('now')
     },
     userid: {
       type: DataTypes.UUIDV4,
@@ -23,30 +41,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'users',
         key: 'userid'
-      },
-      field: 'userid'
-    },
-    liketype: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'liketype'
-    },
-    activestatus: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: '1',
-      field: 'activestatus'
-    },
-    createddate: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'createddate'
-    },
-    modifieddate: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: sequelize.fn('now')
+      }
     }
   }, {
     schema: 'scoop',
