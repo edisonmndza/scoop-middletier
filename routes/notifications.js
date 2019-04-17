@@ -9,14 +9,15 @@ const router = express.Router(); //create a router
 router.get('/todaynotifs/:id', (request, response)=>{
     const userid = request.params.id //gets the user id passed in
 
-    database.query('SELECT * FROM scoop.notifications LEFT JOIN (SELECT scoop.users.firstname AS activityfirstname, scoop.users.lastname AS activitylastname, scoop.users.userid AS activityuserid, \
-        scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid, scoop.postcomment.activitytype AS activityactivitytype, scoop.postcomment.activityreference AS activityactivityreference FROM \
-        scoop.postcomment INNER JOIN scoop.users ON \
-        scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
+    database.query('SELECT * FROM scoop.notifications \
+        LEFT JOIN (SELECT scoop.users.firstname AS activityfirstname, scoop.users.lastname AS activitylastname, scoop.users.userid AS activityuserid, scoop.users.profileimage AS activityprofileimage, \
+        scoop.postcomment.activityid AS activityactivityid, scoop.postcomment.activitytype AS activityactivitytype, scoop.postcomment.activityreference AS activityactivityreference FROM scoop.postcomment \
+        INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
         LEFT JOIN (SELECT scoop.users.firstname AS likesfirstname, scoop.users.lastname AS likeslastname, scoop.users.profileimage AS likesprofileimage, scoop.likes.userid AS likesuserid, scoop.likes.liketype AS likesliketype, \
-        scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype\
-        FROM scoop.likes INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE \
-        scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
+        scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype FROM scoop.likes \
+        INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
+        INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid \
+        WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
 
@@ -32,12 +33,13 @@ router.get('/todaynotifs/:id', (request, response)=>{
 router.get('/todayimages/:id', (request, response)=>{
     const userid = request.params.id //gets the user id passed in
 
-    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM \
-        scoop.postcomment INNER JOIN scoop.users ON \
-        scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
-        LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid \
-        FROM scoop.likes INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE \
-        scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
+    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications \
+        LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM scoop.postcomment \
+        INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
+        LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid FROM scoop.likes \
+        INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
+        INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid \
+        WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
         for(i=0; i< results.length; i++){
@@ -68,14 +70,15 @@ router.get('/todayimages/:id', (request, response)=>{
 router.get('/recentnotifs/:id', (request, response)=>{
     const userid = request.params.id; //gets the user id passed in
    
-    database.query('SELECT * FROM scoop.notifications LEFT JOIN (SELECT scoop.users.firstname AS activityfirstname, scoop.users.lastname AS activitylastname, scoop.users.userid AS activityuserid, \
-        scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid, scoop.postcomment.activitytype AS activityactivitytype, scoop.postcomment.activityreference AS activityactivityreference FROM \
-        scoop.postcomment INNER JOIN scoop.users ON \
-        scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
-        LEFT JOIN (SELECT scoop.users.firstname AS likesfirstname, scoop.users.lastname AS likeslastname, scoop.users.profileimage AS likesprofileimage, scoop.likes.userid AS likesuserid, scoop.likes.liketype AS likesliketype, \
-        scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype\
-        FROM scoop.likes INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE \
-        scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
+    database.query('SELECT * FROM scoop.notifications \
+    LEFT JOIN (SELECT scoop.users.firstname AS activityfirstname, scoop.users.lastname AS activitylastname, scoop.users.userid AS activityuserid, scoop.users.profileimage AS activityprofileimage, \
+    scoop.postcomment.activityid AS activityactivityid, scoop.postcomment.activitytype AS activityactivitytype, scoop.postcomment.activityreference AS activityactivityreference FROM scoop.postcomment \
+    INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
+    LEFT JOIN (SELECT scoop.users.firstname AS likesfirstname, scoop.users.lastname AS likeslastname, scoop.users.profileimage AS likesprofileimage, scoop.likes.userid AS likesuserid, scoop.likes.liketype AS likesliketype, \
+    scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype FROM scoop.likes \
+    INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
+    INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid \
+    WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
         response.send(results); //sends results back after select statement
@@ -91,12 +94,13 @@ router.get('/recentnotifs/:id', (request, response)=>{
 router.get('/recentimages/:id', (request, response)=>{
     const userid = request.params.id; //gets the user id passed in
 
-    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM \
-        scoop.postcomment INNER JOIN scoop.users ON \
-        scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
-        LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid \
-        FROM scoop.likes INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE \
-        scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
+    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications \
+    LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM scoop.postcomment \
+    INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
+    LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid FROM scoop.likes \
+    INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
+    INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid \
+    WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
         
