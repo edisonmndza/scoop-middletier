@@ -9,7 +9,7 @@ const NotificationsModel = database.import('../models/notifications');
 /**
  * Description: gets post for specified feed
  */
-router.get('/posts/:feed/:userid', authorization, (request, response)=>{
+router.get('/posts/:feed/:userid',authorization,(request, response)=>{
     const feed = request.params.feed;
     const userid = request.params.userid;
     database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
@@ -21,7 +21,7 @@ router.get('/posts/:feed/:userid', authorization, (request, response)=>{
     ORDER BY scoop.postcomment.createddate DESC', 
     {replacements: {id:userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{
-        console.log(results)
+    
         response.send(results);
     })
 })
@@ -42,7 +42,7 @@ router.get('/images/:feed/:userid', authorization, (request, response)=>{
     {replacements: {id: userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{
         for(i=0; i<results.length; i++){
-            if(results[i].postimagepath != null){ //if there is a post image
+            if(results[i].postimagepath != ""){ //if there is a post image
                 var postImagePath = results[i].postimagepath; //gets the image path of the postimagepath
                 var postImageFile = fs.readFileSync(postImagePath); //reads the image path and stores the file into a variable
                 var postbase64data = postImageFile.toString('base64'); //converts the image file to a string
@@ -90,7 +90,7 @@ router.post('/insertlikes', authorization, (request, response)=>{
 /**
  * Description: updates like to new liketype and inserts into notifications table if new liketype == 1
  */
-router.put('/updatelikes', (request, response)=>{
+router.put('/updatelikes', authorization, (request, response)=>{
     const{userid, activityid, liketype, posterid} = request.body;
     database.query("UPDATE scoop.likes SET liketype = :liketype WHERE scoop.likes.userid = :id AND scoop.likes.activityid = :activityid RETURNING scoop.likes.likeid", 
     {replacements: {liketype: liketype, id: userid, activityid: activityid}})
