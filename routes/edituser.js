@@ -289,7 +289,6 @@ const instagramReturned = (userid, instagram) => {
     });
 };
 
-
 // Function to update the twitter status on the usersocial table
 const twitterReturned = (userid, twitter) => {
   // Finding the users social media (twitter)

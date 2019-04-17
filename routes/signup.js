@@ -7,7 +7,7 @@ const fs = require("fs");
 const router = express.Router();
 
 // reading the private key that is going to be used to as the secret key for tokens
-var path = "./private.key";
+var path = "../scoop-middle-tier/private.key";
 var privatekey = fs.readFileSync(path, "utf8");
 
 var genRandomString = function(length) {

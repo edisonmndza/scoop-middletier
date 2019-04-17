@@ -2,7 +2,7 @@
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
 
-var path = "./private.key";
+var path = "../scoop-middle-tier/private.key";
 var privatekey = fs.readFileSync(path, "utf8");
 
 // authorization for token in request header
