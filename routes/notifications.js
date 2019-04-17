@@ -1,13 +1,14 @@
-const fs = require('fs'); //instantiate file system
-const express = require('express') //instantiate express
-const database = require('../config/database'); //import database
+const fs = require("fs"); //instantiate file system
+const express = require("express"); //instantiate express
+const database = require("../config/database"); //import database
+const authorization = require("../config/token-verification"); // importing token authorization function
 const router = express.Router(); //create a router
 
 /**
  * Description: used to get notifications within the last 24 hours
  */
-router.get('/todaynotifs/:id', (request, response)=>{
-    const userid = request.params.id //gets the user id passed in
+router.get("/todaynotifs/:id", authorization, (request, response) => {
+  const userid = request.params.id; //gets the user id passed in
 
     database.query('SELECT * FROM scoop.notifications \
         LEFT JOIN (SELECT scoop.users.firstname AS activityfirstname, scoop.users.lastname AS activitylastname, scoop.users.userid AS activityuserid, scoop.users.profileimage AS activityprofileimage, \
@@ -30,8 +31,8 @@ router.get('/todaynotifs/:id', (request, response)=>{
 /**
  * Description: used to get images from last 24 hours
  */
-router.get('/todayimages/:id', (request, response)=>{
-    const userid = request.params.id //gets the user id passed in
+router.get("/todayimages/:id", authorization, (request, response) => {
+  const userid = request.params.id; //gets the user id passed in
 
     database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications \
         LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM scoop.postcomment \
@@ -58,11 +59,11 @@ router.get('/todayimages/:id', (request, response)=>{
             }
         }
         response.send(results); //sends results back after for loop
-    })
-})
+      })
+    });
+
 // Description of SELECT statement: Selects images from last 24 hours which is left joined on activity ids with a table made of the activities joined with the person who performed the activity \
 //                                  which is then left joined on like ids with a table made of likes joined with activities they liked joined with the users who performed the like
-
 
 /**
  * Description: used to get notifications after 24 hours
@@ -83,16 +84,15 @@ router.get('/recentnotifs/:id', (request, response)=>{
     .then(results=>{
         response.send(results); //sends results back after select statement
     });
-})
+});
 // Description of SELECT statement: Selects notifications after 24 hours which is left joined on activity ids with a table made of the activities joined with the person who performed the activity \
 //                                  which is then left joined on like ids with a table made of likes joined with activities they liked joined with the users who performed the like
-
 
 /**
  * Description: used to get images after 24 hours
  */
-router.get('/recentimages/:id', (request, response)=>{
-    const userid = request.params.id; //gets the user id passed in
+router.get("/recentimages/:id", authorization, (request, response) => {
+  const userid = request.params.id; //gets the user id passed in
 
     database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications \
     LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM scoop.postcomment \
@@ -120,10 +120,11 @@ router.get('/recentimages/:id', (request, response)=>{
             }
         }
         response.send(results); //sends results back after for loop
-    });
-})
+      }
+    )
+});
+
 // Description of SELECT statement: Selects images after 24 hours which is left joined on activity ids with a table made of the activities joined with the person who performed the activity \
 //                                  which is then left joined on like ids with a table made of likes joined with activities they liked joined with the users who performed the like
-
 
 module.exports = router;
