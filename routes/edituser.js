@@ -149,6 +149,8 @@ router.put("/updatedatabase", authorization, (request, response) => {
     buildingid = results[1];
     divisionid = results[2];
 
+    console.log(" BOY " + positionid)
+
     // Putting all the data that is to be updated into one variable
     const updatedUserData = {
       firstname: firstname,
@@ -172,6 +174,8 @@ router.put("/updatedatabase", authorization, (request, response) => {
     linkedinReturned(userid, linkedin),
     instagramReturned(userid, instagram)
   ]);
+
+  response.send("success")
 });
 
 // Function to help concatenate the json array on initial fill
@@ -367,33 +371,19 @@ const linkedinReturned = (userid, linkedin) => {
 const positionReturned = position => {
   let positionid;
   if (position !== "") {
-    return positionModel
-      .findOne({
+    return positionModel.findOrCreate({
         // Finding the position in the position table
         where: {
           positionname: position
+        },
+        // If not found, it will create a tuple in the database
+        defaults: {
+          positionname: position
         }
       })
-      .then(doesPositionExists => {
-        // Checking if the result is null
-        // [1] if not null, the position exist in db then we grab the positionid.
-        // [2] if null, the position doesn't exist and (a) we have to add it to db, then (b) look for it in the db, then (c) grab the positionid
-        if (doesPositionExists !== null) {
-          // [1] Position exists and grabbing the positionid here
-          positionid = doesPositionExists.positionid;
-          return positionid;
-        } else {
-          // [2] Position doesn't exist and we have to add it.
-          positionModel
-            .create({
-              // [2](a) adding the position to the position table
-              positionname: position
-            })
-            .then(newPosition => {
-              positionid = newPosition.positionid;
-              return positionid;
-            });
-        }
+      .then(results => {
+        // Grabbing the id of the position
+        return results[0].positionid
       });
   } else {
     positionid = null;
@@ -401,46 +391,30 @@ const positionReturned = position => {
   }
 };
 
+
 // Function to get the building id from the address inputted at edittext
 const buildingReturned = (building, city, province) => {
   let buildingid;
   if (building !== "") {
-    // Finding the address in the buildings table
     return buildingModel
-      .findOne({
+      .findOrCreate({
+        // Finding the address in the buildings table
         where: {
           address: building
+        },
+        // If not found, it will create a tuple in the database
+        defaults: {
+          address: building,
+          city: city,
+          province: province
         }
       })
-      .then(doesBuildingExist => {
-        // Checking if the result is null
-        // [1] if not null, the address exist in the db then we grab the divisionid.
-        // [2] if null, the address doesn't exist and (a) we have to add it to the db, then (b) look for it in the db, then (c) grab the buildingid
-        if (doesBuildingExist !== null) {
-          // [1] address exist in the db and we grab the building id here
-          buildingid = doesBuildingExist.buildingid;
-          console.log(buildingid);
-          console.log("buildingid found");
-          return buildingid;
-        } else {
-          // [2] address doesn't exist in db and we have to add it
-          buildingModel
-            .create({
-              // [2](a) adding it to the db
-              address: building,
-              city: city,
-              province: province
-            })
-            .then(newBuilding => {
-              buildingid = newBuilding.buildingid;
-              console.log("building object created");
-              return buildingid;
-            });
-        }
+      .then(results => {
+        //Grabbing id of the building
+        return results[0].buildingid
       });
   } else {
     buildingid = null;
-    console.log("building not found");
     return buildingid;
   }
 };
@@ -449,33 +423,19 @@ const buildingReturned = (building, city, province) => {
 const divisionReturned = division => {
   let divisionid;
   if (division !== "") {
-    // Finding the division in the division table
-    return divisionModel
-      .findOne({
+    return divisionModel.findOrCreate({
+        // Finding the division in the division table
         where: {
+          division_en: division
+        },
+        // Finding the division in the division table
+        defaults: {
           division_en: division
         }
       })
-      .then(doesDivisionExist => {
-        // Checking if the result is null
-        // [1] if not null, the division exist in db then we grab the divisionid.
-        // [2] if null, the division doesn't exist and (a) we have to add it to db, then (b) look for it in the db, then (c) grab the divisionid
-        if (doesDivisionExist !== null) {
-          // [1] Division exists and grabbing the divisionid here
-          divisionid = doesDivisionExist.divisionid;
-          return divisionid;
-        } else {
-          // [2] Division doesn't exist and we have to add it.
-          divisionModel
-            .create({
-              // [2](a) adding the division to the division table
-              division_en: division
-            })
-            .then(newDivision => {
-              divisionid = newDivision.divisionid;
-              return divisionid;
-            });
-        }
+      .then(results => {
+        // Grabbing the id of the division
+        return results[0].divisionid
       });
   } else {
     divisionid = null;
