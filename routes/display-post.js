@@ -2,13 +2,14 @@ const fs = require('fs');
 const express = require('express') //instantiate express
 const database = require('../config/database'); //import database
 const router = express.Router(); //create a router
+const authorization = require("../config/token-verification"); // importing token authorization function
 const LikeModel = database.import('../models/likes');
 const NotificationsModel = database.import('../models/notifications');
 
 /**
  * Description: gets post for specified feed
  */
-router.get('/posts/:feed/:userid', (request, response)=>{
+router.get('/posts/:feed/:userid', authorization, (request, response)=>{
     const feed = request.params.feed;
     const userid = request.params.userid;
     database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
@@ -30,7 +31,7 @@ router.get('/posts/:feed/:userid', (request, response)=>{
 /**
  * Description: gets post and user images for the specified feed
  */
-router.get('/images/:feed/:userid', (request, response)=>{
+router.get('/images/:feed/:userid', authorization, (request, response)=>{
     const feed = request.params.feed;
     const userid = request.params.userid; 
 
@@ -66,7 +67,7 @@ router.get('/images/:feed/:userid', (request, response)=>{
 /**
  * Description: inserts likes into likes table and notifications table if liketype == 1
  */
-router.post('/insertlikes', (request, response)=>{
+router.post('/insertlikes', authorization, (request, response)=>{
     const {userid, activityid, posterid, liketype} = request.body;
     LikeModel.create({
         activityid: activityid,
