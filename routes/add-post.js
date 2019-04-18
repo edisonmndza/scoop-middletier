@@ -31,7 +31,16 @@ router.post("/", authorization, (req, res) => {
     });
   }
 
-  //send the object to the postcomment table in the scoopdb database.
+  database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id', 
+  {replacements:{id: userid}, type: database.QueryTypes.SELECT})
+  .then((result)=>{
+    var feed;
+    if(result[0].officialcertified=='yes'){
+      feed = 'official'
+    }else{
+      feed = 'community'
+    }
+ //send the object to the postcomment table in the scoopdb database.
   //image path will be left blank ("") if no image was added to the post.
   userModel
     .create({
@@ -39,11 +48,14 @@ router.post("/", authorization, (req, res) => {
       activitytype: activitytype,
       posttitle: posttitle,
       posttext: posttext,
-      postimagepath: imagepath
+      postimagepath: imagepath,
+      feed: feed,
     })
     .then(() => {
       res.send("Success");
     });
+  })
+ 
 });
 
 module.exports = router;
