@@ -42,7 +42,7 @@ router.get('/images/:feed/:userid', authorization, (request, response)=>{
     {replacements: {id: userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{
         for(i=0; i<results.length; i++){
-            if(results[i].postimagepath != null){ //if there is a post image
+            if(results[i].postimagepath != ""){ //if there is a post image
                 var postImagePath = results[i].postimagepath; //gets the image path of the postimagepath
                 var postImageFile = fs.readFileSync(postImagePath); //reads the image path and stores the file into a variable
                 var postbase64data = postImageFile.toString('base64'); //converts the image file to a string
