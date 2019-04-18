@@ -1,6 +1,7 @@
 const database = require("../config/database");
 const express = require("express");
-const userModel = database.import("../models/postcomment");
+const postCommentModel = database.import("../models/postcomment");
+const notifModel = database.import("../models/notifications")
 const authorization = require("../config/token-verification");
 
 const router = express.Router();
@@ -8,15 +9,22 @@ const router = express.Router();
 router.post("/", authorization, (req, res) => {
   const { userid, activitytype, posttext, activityreference } = req.body;
   console.log(userid);
-  userModel
+  console.log(activityreference);
+  
+  postCommentModel
     .create({
       userid: userid,
       activitytype: activitytype,
       posttext: posttext,
       activityreference: activityreference
     })
-    .then(() => {
-      res.send("Success");
+    .then((result) => {
+      console.log(result.activityid)
+      notifModel.create({
+        userid: userid, 
+        activityid: result.activityid,
+        activestatus: 1,
+      })
     });
 });
 

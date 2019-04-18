@@ -17,7 +17,7 @@ router.get('/posts/:feed/:userid',authorization,(request, response)=>{
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
     LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
     INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
-    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid != :id AND feed = :feed \
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND feed = :feed \
     ORDER BY scoop.postcomment.createddate DESC', 
     {replacements: {id:userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{

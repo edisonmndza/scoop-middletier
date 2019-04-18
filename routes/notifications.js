@@ -21,7 +21,9 @@ router.get("/todaynotifs/:id", authorization, (request, response) => {
         WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
-
+      var offset = new Date().getTimezoneOffset();
+      console.log(offset);
+      console.log(results);
         response.send(results); //sends results back after select statement
     })
 })
@@ -82,6 +84,7 @@ router.get('/recentnotifs/:id', (request, response)=>{
     WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
+         console.log(results);
         response.send(results); //sends results back after select statement
     });
 });
