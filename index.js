@@ -33,4 +33,5 @@ app.use("/edituser", require("./routes/edituser"));
 
 app.use("/notifications", require('./routes/notifications.js'));
 
+app.use("/display-post", require("./routes/display-post"));
 app.use("/profile", require('./routes/profile'))

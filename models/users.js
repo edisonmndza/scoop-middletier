@@ -6,56 +6,41 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.UUIDV4,
       allowNull: false,
       defaultValue: sequelize.fn('uuid_generate_v4'),
-      primaryKey: true,
-      field: 'userid'
+      primaryKey: true
     },
     firstname: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'firstname'
+      allowNull: true
     },
     lastname: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'lastname'
+      allowNull: true
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'email'
+      allowNull: true
     },
     passwordhash: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'passwordhash'
+      allowNull: true
     },
     salt: {
       type: DataTypes.STRING,
-      allowNull: true,
-      field: 'salt'
+      allowNull: true
     },
     dateofbirth: {
       type: DataTypes.DATEONLY,
-      allowNull: true,
-      field: 'dateofbirth'
+      allowNull: true
     },
     genderid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'genders',
-        key: 'genderid'
-      },
-      field: 'genderid'
+      primaryKey: true
     },
     divisionid: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'divisions',
-        key: 'divisionid'
-      },
-      field: 'divisionid'
+      primaryKey: true
     },
     buildingid: {
       type: DataTypes.INTEGER,
@@ -67,14 +52,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       primaryKey: true
     },
-    positionid: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'positions',
-        key: 'positionid'
-      }
-    },
     profileimage: {
       type: DataTypes.STRING,
       allowNull: true
@@ -82,27 +59,23 @@ module.exports = function(sequelize, DataTypes) {
     createddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'createddate'
+      defaultValue: sequelize.fn('now')
     },
     modifieddate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: sequelize.fn('now'),
-      field: 'modifieddate'
+      defaultValue: sequelize.fn('now')
     },
     modifiedby: {
       type: DataTypes.UUIDV4,
-      allowNull: true,
-      field: 'modifiedby'
+      allowNull: true
     },
     userstatus: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'userstatus'
+      allowNull: true
     }
   }, {
-    tableName: 'users',
-    schema: 'scoop'
+    schema: 'scoop',
+    tableName: 'users'
   });
 };
