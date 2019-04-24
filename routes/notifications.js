@@ -40,15 +40,21 @@ router.get("/todaynotifs/:id", authorization, (request, response) => {
 router.get("/todayimages/:id", authorization, (request, response) => {
   const userid = request.params.id; //gets the user id passed in
 
-    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications \
+    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage, t2.likesliketype FROM scoop.notifications \
         LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM scoop.postcomment \
         INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1 AND scoop.users.userid != :id) t1 ON scoop.notifications.activityid = t1.activityactivityid \
-        LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid FROM scoop.likes \
+        LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid, scoop.likes.liketype AS likesliketype FROM scoop.likes \
         INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
         INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1 AND scoop.users.userid != :id) t2 ON scoop.notifications.likeid = t2.likeslikeid \
         WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
+      for (var i = 0; i < results.length; i++){
+        if(results[i].likesliketype != 1){
+          delete results[i]
+        }
+      }
+      results = results.filter(o => Object.keys(o).length); 
         for(i=0; i< results.length; i++){
             if(results[i].activityprofileimage != null){ //checks if activity profile image is not null
                 var imagePath = results[i].activityprofileimage; //gets the image path of the activity profile image
@@ -107,16 +113,21 @@ router.get('/recentnotifs/:id', (request, response)=>{
 router.get("/recentimages/:id", authorization, (request, response) => {
   const userid = request.params.id; //gets the user id passed in
 
-    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage FROM scoop.notifications \
+    database.query('SELECT t1.activityprofileimage, t2.likesprofileimage, t2.likesliketype FROM scoop.notifications \
     LEFT JOIN (SELECT scoop.users.profileimage AS activityprofileimage, scoop.postcomment.activityid AS activityactivityid FROM scoop.postcomment \
     INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1 AND scoop.users.userid != :id) t1 ON scoop.notifications.activityid = t1.activityactivityid \
-    LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid FROM scoop.likes \
+    LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid, scoop.likes.liketype AS likesliketype FROM scoop.likes \
     INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
     INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1 AND scoop.users.userid != :id) t2 ON scoop.notifications.likeid = t2.likeslikeid \
     WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
-        
+      for (var i = 0; i < results.length; i++){
+        if(results[i].likesliketype != 1){
+          delete results[i]
+        }
+      }
+      results = results.filter(o => Object.keys(o).length); 
         for(i=0; i< results.length; i++){
             if(results[i].activityprofileimage != null){ //checks if activity profile image is not null
                 var imagePath = results[i].activityprofileimage; //gets the image path of the activity profile image
