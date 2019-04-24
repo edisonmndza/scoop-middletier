@@ -21,7 +21,7 @@ router.get('/posts/:feed/:userid',authorization,(request, response)=>{
     ORDER BY scoop.postcomment.createddate DESC', 
     {replacements: {id:userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{
-    
+        console.log(results)
         response.send(results);
     })
 })
@@ -61,6 +61,8 @@ router.get('/images/:feed/:userid', authorization, (request, response)=>{
                 results[i].profileimage = userbase64data;
             }
         }
+        console.log(results.length)
+
         response.send(results);
     }).catch(err=>{
         console.log(err);
