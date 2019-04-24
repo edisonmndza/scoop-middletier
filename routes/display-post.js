@@ -21,7 +21,7 @@ router.get('/posts/:feed/:userid',authorization,(request, response)=>{
     ORDER BY scoop.postcomment.createddate DESC', 
     {replacements: {id:userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{
-    
+        console.log(results)
         response.send(results);
     })
 })
@@ -34,15 +34,18 @@ router.get('/posts/:feed/:userid',authorization,(request, response)=>{
 router.get('/images/:feed/:userid', authorization, (request, response)=>{
     const feed = request.params.feed;
     const userid = request.params.userid; 
-
+    console.log(feed)
+    console.log(userid)
     database.query('SELECT scoop.postcomment.postimagepath AS postimagepath, scoop.users.profileimage AS profileimage FROM scoop.postcomment \
     INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid \
-    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid != :id AND feed = :feed \
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND feed = :feed \
     ORDER BY scoop.postcomment.createddate DESC',
     {replacements: {id: userid, feed: feed}, type: database.QueryTypes.SELECT})
     .then(results=>{
+        console.log(results)
         for(i=0; i<results.length; i++){
             console.log("Hello");
+            console.log(results[i].profileimagepath);
             if(results[i].postimagepath != null && results[i].postimagepath != ""){ //if there is a post image
                 console.log("hello")
                 var postImagePath = results[i].postimagepath; //gets the image path of the postimagepath
