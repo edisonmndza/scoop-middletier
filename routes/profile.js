@@ -13,7 +13,7 @@ const authorization = require("../config/token-verification");
 // on the user profile
 router.get("/initialfill/:userid", authorization, (request, response) => {
     // Getting the user's profile.
-    const userid = request.params.userid
+    var userid = request.params.userid
     
     // Necessary variables
     var imagePath, imageFile, base64data, fullName, positionid, divisionid, buildingid, city, province, object;
@@ -63,6 +63,42 @@ router.get("/initialfill/:userid", authorization, (request, response) => {
             // sending the result back to application
             response.send(output)
         })
+    })
+})
+
+router.get("/posttextfill/:userclicked/:currentuser", authorization, (request, response) => {
+    var userClicked = request.params.userclicked
+    var currentuser = request.params.currentuser
+    database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
+    LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
+    LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
+    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid = :id \
+    ORDER BY scoop.postcomment.createddate DESC', 
+    {replacements: {id: userClicked, currentuser: currentuser}, type: database.QueryTypes.SELECT})
+    .then(results => {
+        console.log(results)
+        response.send(results)
+    })
+})
+
+router.get('/postimagefill/:userid', authorization, (request, response)=>{
+    const userid = request.params.userid; 
+
+    database.query('SELECT scoop.users.profileimage AS profileimage FROM scoop.postcomment \
+    INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid \
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid = :id \
+    ORDER BY scoop.postcomment.createddate DESC',
+    {replacements: {id: userid}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        response.send(results);
     })
 })
 

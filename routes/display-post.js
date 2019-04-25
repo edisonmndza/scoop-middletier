@@ -64,6 +64,8 @@ router.get('/images/:feed/:userid', authorization, (request, response)=>{
                 results[i].profileimage = userbase64data;
             }
         }
+        console.log(results.length)
+
         response.send(results);
     }).catch(err=>{
         console.log(err);

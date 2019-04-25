@@ -21,14 +21,14 @@ router.get("/todaynotifs/:id", authorization, (request, response) => {
         WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
-      for (var i = 0; i < results.length; i++){
-        if(results[i].likesliketype != 1){
-          delete results[i]
+        for (var i = 0; i < results.length; i++){
+            if(results[i].likesliketype != 1){
+                delete results[i]
+            }
         }
-      }
-      results = results.filter(o => Object.keys(o).length); 
-      console.log(results);
-      response.send(results); //sends results back after select statement
+        results = results.filter(o => Object.keys(o).length); 
+        console.log(results);
+        response.send(results); //sends results back after select statement
     })
 })
 // Description of SELECT statement: Selects notifications from last 24 hours which is left joined on activity ids with a table made of the activities joined with the person who performed the activity \
@@ -94,14 +94,14 @@ router.get('/recentnotifs/:id', (request, response)=>{
     WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
-      for (var i = 0; i < results.length; i++){
-        if(results[i].likesliketype != 1){
-          delete results[i]
+        for (var i = 0; i < results.length; i++){
+            if(results[i].likesliketype != 1){
+                delete results[i]
+            }
         }
-      }
-      results = results.filter(o => Object.keys(o).length); 
-      console.log(results);
-      response.send(results); //sends results back after select statement
+        results = results.filter(o => Object.keys(o).length); 
+        console.log(results);
+        response.send(results); //sends results back after select statement
     });
 });
 // Description of SELECT statement: Selects notifications after 24 hours which is left joined on activity ids with a table made of the activities joined with the person who performed the activity \
