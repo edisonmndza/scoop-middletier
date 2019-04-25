@@ -98,6 +98,44 @@ router.get('/postimagefill/:userid', authorization, (request, response)=>{
             var userbase64data = userImageFile.toString('base64');
             results[i].profileimage = userbase64data;
         }
+        console.log(results.length)
+        response.send(results);
+    })
+})
+
+router.get('/commenttextfill/:userclicked/:currentuser', authorization, (request, response) => {
+    var userClicked = request.params.userclicked
+    var currentUser = request.params.currentuser
+    database.query('SELECT coalesce(A.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, A.posttext, A.activestatus, A.createddate, A.activitytype, A.userid, A.activityreference, likecount, liketype, firstname, lastname, postfirstname, postlastname FROM scoop.postcomment A \
+    INNER JOIN (SELECT scoop.postcomment.activityid, scoop.users.firstname AS postfirstname, scoop.users.lastname AS postlastname FROM scoop.postcomment INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid) B ON A.activityreference = B.activityid \
+    LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON A.activityid = t1.duplicateactivityid \
+    LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON A.activityid = t2.likesactivityid \
+    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS currentuserid FROM scoop.users) t4 ON A.userid = t4.currentuserid \
+    WHERE A.activitytype = 2 AND A.activestatus = 1 AND A.userid = :id \
+    ORDER BY A.createddate DESC', 
+    {replacements: {id: userClicked, currentuser: currentUser}, type: database.QueryTypes.SELECT})
+    .then(results => {
+        console.log(results)
+        response.send(results)
+    })
+})
+
+router.get('/commentimagefill/:userid', authorization, (request, response)=>{
+    const userid = request.params.userid; 
+
+    database.query('SELECT scoop.users.profileimage AS profileimage FROM scoop.postcomment \
+    INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid \
+    WHERE scoop.postcomment.activitytype = 2 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid = :id \
+    ORDER BY scoop.postcomment.createddate DESC',
+    {replacements: {id: userid}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        console.log(results.length)
         response.send(results);
     })
 })
