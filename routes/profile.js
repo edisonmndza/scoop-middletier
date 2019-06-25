@@ -225,4 +225,19 @@ function jsonConcat(o1, o2) {
     return o1;
 }
 
+router.get("/getlikes/:userid", authorization, (request, response) => {
+    // extract the userid from the json body sent from the android app
+    //const { userid } = req.body;
+    const userid = request.params.userid; 
+
+    database.query(
+      "SELECT postcomment.* FROM scoop.postcomment, scoop.likes WHERE likes.activityid = postcomment.activityid AND likes.userid = :id;",  // SQL database query which retrieves all posts/comments that a user has liked
+      { replacements: { id: userid }, type: database.QueryTypes.SELECT }
+    )
+    .then(result => {
+        response.send(result); // Send results of query back to the android app
+    })
+
+})
+
 module.exports = router
