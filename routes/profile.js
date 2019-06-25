@@ -225,10 +225,12 @@ function jsonConcat(o1, o2) {
     return o1;
 }
 
+/**
+ * Gets all posts/comments the currently logged in user has liked
+ * These posts are then to be displayed in the user's profile view
+ */
 router.get("/getlikes/:userid", authorization, (request, response) => {
-    // extract the userid from the json body sent from the android app
-    //const { userid } = req.body;
-    const userid = request.params.userid; 
+    const userid = request.params.userid;  //get user id from url params
 
     database.query(
       "SELECT postcomment.* FROM scoop.postcomment, scoop.likes WHERE likes.activityid = postcomment.activityid AND likes.userid = :id;",  // SQL database query which retrieves all posts/comments that a user has liked
