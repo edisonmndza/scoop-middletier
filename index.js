@@ -24,7 +24,8 @@ app.get("/", (req, res) => {
 app.use("/signup", require("./routes/signup"));
 
 // Add a post
-app.use("/add-post", require("./routes/add-post"));
+// app.use("/add-post", require("./routes/add-post"));
+app.use("/post", require("./routes/post"));
 
 // Add a comment
 app.use("/add-comment", require("./routes/add-comment"));
@@ -35,4 +36,5 @@ app.use("/notifications", require('./routes/notifications.js'));
 
 app.use("/profile", require('./routes/profile'))
 
-app.use("/display-post", require("./routes/display-post"));
+// app.use("/display-post", require("./routes/display-post"));
+
