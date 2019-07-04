@@ -74,6 +74,81 @@ router.get('/images/:feed/:userid', authorization, (request, response)=>{
 //Description of SELECT statement: selects the post image path for posts and joins it with the users to get the user image
 
 /**
+ * Description: gets post text for a single display post
+ */
+router.get('/detailedpost/text/:activityid/:userid', authorization,(request, response)=>{
+    const queryactivityid = request.params.activityid;
+    const userid = request.params.userid;
+    database.query('SELECT * FROM ( \
+            SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
+            LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
+            LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
+            LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+            INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+            WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 \
+        ) AS posts WHERE activityid = :activityid \
+        LIMIT 10;',
+    {replacements: {id:userid, activityid: queryactivityid}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        console.log(results)
+        response.send(results);
+    })
+})
+// Description of SELECT statement: selects posts which are of specified feed type, active, and not the user's own posts, this is then joined with the number of likes on that post, then joined with 
+//                                  the liketype on the post, which is joined with the number of comments on the post, which is then joined with the corresponding users who posted the post
+
+
+/**
+ * Description: gets post and user image for a single display post
+ */
+router.get('/detailedpost/image/:activityid/:userid', authorization, (request, response)=>{
+    const queryactivityid = request.params.activityid;
+    const userid = request.params.userid; 
+    console.log(queryactivityid)
+    console.log(userid)
+    database.query('SELECT * FROM ( \
+        SELECT scoop.postcomment.activityid AS activityid, scoop.postcomment.postimagepath AS postimagepath, scoop.users.profileimage AS profileimage \
+        FROM scoop.postcomment \
+        INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid \
+        WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 \
+		AND activityid = :activityid \
+    ) AS images \
+    LIMIT 10;',
+    {replacements: {id: userid, activityid: queryactivityid}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        console.log(results)
+        for(i=0; i<results.length; i++){
+            console.log("Hello");
+            console.log(results[i].profileimagepath);
+            if(results[i].postimagepath != null && results[i].postimagepath != ""){ //if there is a post image
+                console.log("hello")
+                var postImagePath = results[i].postimagepath; //gets the image path of the postimagepath
+                var postImageFile = fs.readFileSync(postImagePath); //reads the image path and stores the file into a variable
+                var postbase64data = postImageFile.toString('base64'); //converts the image file to a string
+                results[i].postimagepath = postbase64data; //saves it into the results postimagepath
+
+                var userImagePath = results[i].profileimage;
+                var userImageFile = fs.readFileSync(userImagePath);
+                var userbase64data = userImageFile.toString('base64');
+                results[i].profileimage = userbase64data;
+            }else{
+                var userImagePath = results[i].profileimage;
+                var userImageFile = fs.readFileSync(userImagePath);
+                var userbase64data = userImageFile.toString('base64');
+                results[i].profileimage = userbase64data;
+            }
+        }
+        console.log(results.length)
+
+        response.send(results);
+    }).catch(err=>{
+        console.log(err);
+    })
+})
+//Description of SELECT statement: selects the post image path for posts and joins it with the users to get the user image for a single post
+
+
+/**
  * Description: inserts likes into likes table and notifications table if liketype == 1
  */
 router.post('/insertlikes', authorization, (request, response)=>{
