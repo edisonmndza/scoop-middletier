@@ -87,7 +87,7 @@ router.get('/detailedpost/text/:activityid/:userid', authorization,(request, res
             INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
             WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 \
         ) AS posts WHERE activityid = :activityid \
-        LIMIT 10;',
+        LIMIT 1;',
     {replacements: {id:userid, activityid: queryactivityid}, type: database.QueryTypes.SELECT})
     .then(results=>{
         console.log(results)
@@ -101,11 +101,9 @@ router.get('/detailedpost/text/:activityid/:userid', authorization,(request, res
 /**
  * Description: gets post and user image for a single display post
  */
-router.get('/detailedpost/image/:activityid/:userid', authorization, (request, response)=>{
+router.get('/detailedpost/image/:activityid', authorization, (request, response)=>{
     const queryactivityid = request.params.activityid;
-    const userid = request.params.userid; 
     console.log(queryactivityid)
-    console.log(userid)
     database.query('SELECT * FROM ( \
         SELECT scoop.postcomment.activityid AS activityid, scoop.postcomment.postimagepath AS postimagepath, scoop.users.profileimage AS profileimage \
         FROM scoop.postcomment \
@@ -113,8 +111,8 @@ router.get('/detailedpost/image/:activityid/:userid', authorization, (request, r
         WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 \
 		AND activityid = :activityid \
     ) AS images \
-    LIMIT 10;',
-    {replacements: {id: userid, activityid: queryactivityid}, type: database.QueryTypes.SELECT})
+    LIMIT 1;',
+    {replacements: {activityid: queryactivityid}, type: database.QueryTypes.SELECT})
     .then(results=>{
         console.log(results)
         for(i=0; i<results.length; i++){
@@ -146,6 +144,50 @@ router.get('/detailedpost/image/:activityid/:userid', authorization, (request, r
     })
 })
 //Description of SELECT statement: selects the post image path for posts and joins it with the users to get the user image for a single post
+
+
+/**
+ * Description: get post comments for a detailed post
+ */
+router.get('/postcomments/text/:activityid/:userid', authorization, (request, response) => {
+    var activityReference = request.params.activityid
+    var userid = request.params.userid;
+    database.query('SELECT coalesce(A.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, A.posttext, A.activestatus, A.createddate, A.activitytype, A.userid, A.activityreference, likecount, liketype, firstname, lastname, postfirstname, postlastname FROM scoop.postcomment A \
+    INNER JOIN (SELECT scoop.postcomment.activityid, scoop.users.firstname AS postfirstname, scoop.users.lastname AS postlastname FROM scoop.postcomment INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid) B ON A.activityreference = B.activityid \
+    LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON A.activityid = t1.duplicateactivityid \
+    LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :userid) t2 ON A.activityid = t2.likesactivityid \
+    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS currentuserid FROM scoop.users) t4 ON A.userid = t4.currentuserid \
+    WHERE A.activitytype = 2 AND A.activestatus = 1 AND A.activityreference = :activityReference \
+    ORDER BY A.createddate DESC;', 
+    {replacements: {activityReference: activityReference, userid: userid}, type: database.QueryTypes.SELECT})
+    .then(results => {
+        console.log(results)
+        response.send(results)
+    })
+})
+
+/**
+ * Description: get profile images of post comments for a detailed post
+ */
+router.get('/postcomments/images/:activityid', authorization, (request, response)=>{
+    const activityReference = request.params.activityid; 
+
+    database.query('SELECT users.profileimage AS profileimage FROM scoop.postcomment AS postcomment \
+	INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
+    WHERE postcomment.activitytype = 2 AND postcomment.activestatus = 1 AND postcomment.activityreference = :activityReference\
+    ORDER BY postcomment.createddate DESC',
+    {replacements: {activityReference: activityReference}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        console.log(results.length)
+        response.send(results);
+    })
+})
 
 
 /**
