@@ -211,11 +211,11 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
   database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid, t3.savedactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
   LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
   LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
-  LEFT JOIN (SELECT scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.userid AS userid FROM scoop.savedposts) t3 ON scoop.postcomment.activityid = t3.savedactivityid\
+  LEFT JOIN (SELECT scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.userid AS userid, scoop.savedposts.createddate AS savedcreateddate FROM scoop.savedposts) t3 ON scoop.postcomment.activityid = t3.savedactivityid\
   LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t4 ON scoop.postcomment.activityid = t4.activityreference \
   INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON scoop.postcomment.userid = t5.userid \
-  WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND t3.userid = :id', 
-
+  WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND t3.userid = :id\
+  ORDER BY t3.savedcreateddate DESC', 
   {replacements: {id:userid}, type: database.QueryTypes.SELECT})
   .then(results=>{
       console.log(results)
@@ -233,8 +233,9 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
     console.log(userid)
     database.query('SELECT scoop.postcomment.postimagepath AS postimagepath, scoop.users.profileimage AS profileimage FROM scoop.postcomment \
     INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid\
-    INNER JOIN scoop.savedposts ON scoop.savedposts.activityid =  scoop.postcomment.activityid\
-    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.savedposts.userid = :id',
+    INNER JOIN scoop.savedposts ON scoop.savedposts.activityid = scoop.postcomment.activityid\
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.savedposts.userid = :id\
+    ORDER BY scoop.savedposts.createddate DESC',
     {replacements: {id: userid}, type: database.QueryTypes.SELECT})
     .then(results=>{
         console.log(results)
