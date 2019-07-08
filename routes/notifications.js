@@ -13,11 +13,11 @@ router.get("/todaynotifs/:id", authorization, (request, response) => {
     database.query('SELECT * FROM scoop.notifications \
         LEFT JOIN (SELECT scoop.users.firstname AS activityfirstname, scoop.users.lastname AS activitylastname, scoop.users.userid AS activityuserid, scoop.users.profileimage AS activityprofileimage, \
         scoop.postcomment.activityid AS activityactivityid, scoop.postcomment.activitytype AS activityactivitytype, scoop.postcomment.activityreference AS activityactivityreference FROM scoop.postcomment \
-        INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1 AND scoop.users.userid != :id) t1 ON scoop.notifications.activityid = t1.activityactivityid \
+        INNER JOIN scoop.users ON scoop.users.userid = scoop.postcomment.userid WHERE scoop.postcomment.activestatus = 1) t1 ON scoop.notifications.activityid = t1.activityactivityid \
         LEFT JOIN (SELECT scoop.users.firstname AS likesfirstname, scoop.users.lastname AS likeslastname, scoop.users.profileimage AS likesprofileimage, scoop.likes.userid AS likesuserid, scoop.likes.liketype AS likesliketype, \
         scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype FROM scoop.likes \
         INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
-        INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1 AND scoop.users.userid != :id) t2 ON scoop.notifications.likeid = t2.likeslikeid \
+        INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid \
         WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
