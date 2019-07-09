@@ -18,7 +18,7 @@ router.get("/todaynotifs/:id", authorization, (request, response) => {
         scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype FROM scoop.likes \
         INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
         INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1) t2 ON scoop.notifications.likeid = t2.likeslikeid \
-        WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
+        WHERE scoop.notifications.userid = :id AND scoop.notifications.modifieddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.modifieddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
         for (var i = 0; i < results.length; i++){
@@ -46,7 +46,7 @@ router.get("/todayimages/:id", authorization, (request, response) => {
         LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid, scoop.likes.liketype AS likesliketype FROM scoop.likes \
         INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
         INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1 AND scoop.users.userid != :id) t2 ON scoop.notifications.likeid = t2.likeslikeid \
-        WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC', 
+        WHERE scoop.notifications.userid = :id AND scoop.notifications.modifieddate >= NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.modifieddate DESC', 
     {replacements:{id:userid}, type: database.QueryTypes.SELECT})
     .then(results =>{
       for (var i = 0; i < results.length; i++){
@@ -91,7 +91,7 @@ router.get('/recentnotifs/:id', (request, response)=>{
     scoop.likes.likeid AS likeslikeid, s1.activityid AS likesactivityid, s1.activitytype AS likesactivitytype, s1.activityreference AS likesactivityreference, s1.activitytype AS likesactivitytype FROM scoop.likes \
     INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
     INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1 AND scoop.users.userid != :id) t2 ON scoop.notifications.likeid = t2.likeslikeid \
-    WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
+    WHERE scoop.notifications.userid = :id AND scoop.notifications.modifieddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.modifieddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
         for (var i = 0; i < results.length; i++){
@@ -119,7 +119,7 @@ router.get("/recentimages/:id", authorization, (request, response) => {
     LEFT JOIN (SELECT scoop.users.profileimage AS likesprofileimage, scoop.likes.likeid AS likeslikeid, scoop.likes.liketype AS likesliketype FROM scoop.likes \
     INNER JOIN scoop.postcomment s1 ON scoop.likes.activityid = s1.activityid \
     INNER JOIN scoop.users ON scoop.likes.userid = scoop.users.userid WHERE scoop.likes.activestatus = 1 AND scoop.likes.liketype=1 AND scoop.users.userid != :id) t2 ON scoop.notifications.likeid = t2.likeslikeid \
-    WHERE scoop.notifications.userid = :id AND scoop.notifications.createddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.createddate DESC',
+    WHERE scoop.notifications.userid = :id AND scoop.notifications.modifieddate < NOW() - INTERVAL \'24 HOURS\' ORDER BY scoop.notifications.modifieddate DESC',
     {replacements:{id:userid}, type:database.QueryTypes.SELECT})
     .then(results=>{
       for (var i = 0; i < results.length; i++){
