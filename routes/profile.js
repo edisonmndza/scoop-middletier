@@ -103,7 +103,12 @@ router.get('/postimagefill/:userid', authorization, (request, response)=>{
     })
 })
 
-router.get('/commenttextfill/:userclicked/:currentuser', authorization, (request, response) => {
+/**
+ * Query to grab the necessary attributes for the Profile Comments
+ * Current User's first and last name and comment message, Poster's first and last name and the referenceID to the post itself.
+ *  
+ */
+router.get('/comment-message/:userclicked/:currentuser', authorization, (request, response) => {
     var userClicked = request.params.userclicked
     var currentUser = request.params.currentuser
     database.query('SELECT coalesce(A.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, A.posttext, A.activestatus, A.createddate, A.activitytype, A.userid, A.activityreference, likecount, liketype, firstname, lastname, postfirstname, postlastname FROM scoop.postcomment A \
@@ -120,7 +125,10 @@ router.get('/commenttextfill/:userclicked/:currentuser', authorization, (request
     })
 })
 
-router.get('/commentimagefill/:userid', authorization, (request, response)=>{
+/**
+ * Query to grab the user's profile image for the Profile Comments
+ */
+router.get('/comment-profile-image/:userid', authorization, (request, response)=>{
     const userid = request.params.userid; 
 
     database.query('SELECT scoop.users.profileimage AS profileimage FROM scoop.postcomment \
@@ -184,6 +192,23 @@ const getBuilding = (buildingid) => {
         return null
     }
 }
+
+router.get('/get-profile-comment/:userclicked', authorization, (req, res)=>{
+    const userclicked = req.params.userclicked;
+    database.query(
+        'SELECT scoop.users.firstname userClickedFName, t2.postText postText, posternames.posterfname, posternames.posterlname FROM scoop.users \
+        INNER JOIN scoop.postcomment t2 ON scoop.users.userid = t2.userid \
+        left join ( select scoop.users.userid, scoop.users.firstname posterfname, scoop.users.lastname posterlname from scoop.users) posternames \
+        left join scoop.postcomment t3 ON t3.userid = posternames.userid  \
+        on t2.activityreference = t3.activityid \
+        WHERE scoop.users.userid = :id and t2.activitytype = 2',
+        {replacements:{id: userclicked}, type: database.QueryTypes.SELECT}
+    ).then (result=>{
+        console.log(result)
+        response.send(result)  
+    })
+})
+
 
 // Function to get all the urls of the user
 const initialSocial = (userid) => {
