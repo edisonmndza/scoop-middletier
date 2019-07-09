@@ -250,47 +250,59 @@ INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
 
 
 /**
- * Description: inserts likes into likes table and notifications table if liketype == 1
- */
-router.post('/insert-like', authorization, (request, response)=>{
-  const {userid, activityid, posterid, liketype} = request.body;
-  LikeModel.create({
-      activityid: activityid,
-      liketype: liketype,
-      activestatus:1,
-      userid:userid
-  }).then(result =>{
-      if(result.liketype == 1){
-          NotificationsModel.create({
-              userid: posterid,
-              likeid:result.likeid,
-              activestatus: 1
-          }).then(()=>{
-              response.send("SUCCESS");
-          })
-      }
-  })
-})
-
-/**
- * Description: updates like to new liketype and inserts into notifications table if new liketype == 1
+ * Description: Inserts a new like or updates the existing like in the likes table. 
+ * Update the notifications table
  */
 router.put('/update-like', authorization, (request, response)=>{
   const{userid, activityid, liketype, posterid} = request.body;
-  database.query("UPDATE scoop.likes SET liketype = :liketype WHERE scoop.likes.userid = :id AND scoop.likes.activityid = :activityid RETURNING scoop.likes.likeid", 
-  {replacements: {liketype: liketype, id: userid, activityid: activityid}})
-  .then((result)=>{
-      const likeid = result[0][0].likeid;
-      if(liketype==1){
-          database.query("INSERT INTO scoop.notifications (userid,likeid, activestatus) VALUES (:id, :likeid, 1)"
-          ,{replacements:{id:posterid, activityid:activityid, likeid: likeid}})
-          .then(()=>{
-              response.send("SUCCESS");
+
+  database.query(" \
+  SELECT COUNT(scoop.likes.likeid) AS like_count FROM scoop.likes \
+    WHERE scoop.likes.activityid = :activityid AND scoop.likes.userid = :userid\
+  ",
+  {replacements: {liketype: liketype, userid: userid, activityid: activityid}})
+  .then((result) => {
+    console.log(result[0][0])
+    if (result[0][0].like_count == 0) {
+      console.log("inserting like")
+      LikeModel.create({
+        activityid: activityid,
+        liketype: liketype,
+        activestatus:1,
+        userid:userid
+      }).then(result_insert => {
+        if(result_insert.liketype == 1) {
+          NotificationsModel.create({
+            userid: posterid,
+            likeid:result_insert.likeid,
+            activestatus: 1
           })
-      }
+        }
+        response.send(result_insert);
+      })
+    }
+    else {
+      console.log("updating like")
+      database.query(" \
+      UPDATE scoop.likes SET liketype = :liketype \
+      WHERE scoop.likes.userid = :userid \
+      AND scoop.likes.activityid = :activityid \
+      RETURNING scoop.likes.likeid; \
+      ",
+      {replacements: {liketype: liketype, userid: userid, activityid: activityid}})
+      .then((result) => {
+        if(liketype == 1) {
+          const likeid = result[0][0].likeid;
+          console.log(likeid)
+          database.query("INSERT INTO scoop.notifications (userid, likeid, activestatus) \
+          VALUES (:posterid, :likeid, 1);"
+          ,{replacements:{posterid: posterid, activityid: activityid, likeid: likeid}})
+        }
+        response.send(result);
+      })
+    }
   })
 })
-
 
 
 /**
