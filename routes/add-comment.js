@@ -25,6 +25,7 @@ router.post("/", authorization, (req, res) => {
         activityid: result.activityid,
         activestatus: 1,
       })
+      res.send("Success");
     });
 });
 
