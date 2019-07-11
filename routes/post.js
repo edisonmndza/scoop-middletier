@@ -54,8 +54,28 @@ database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id',
       posttext: posttext,
       postimagepath: imagepath,
       feed: feed,
+      searchtokens: null
     })
-    .then(() => {
+    .then((results) => {
+      const activitytype = results.dataValues.activitytype
+      const activityid = results.dataValues.activityid
+      console.log(activitytype)
+      if (activitytype == 1) {
+        database.query(' \
+        UPDATE scoop.postcomment \
+        SET searchtokens = to_tsvector \
+        (\'english\', \
+          COALESCE( \
+            ( \
+            SELECT concat(scoop.postcomment.posttitle, scoop.postcomment.posttext) \
+            FROM scoop.postcomment \
+            WHERE scoop.postcomment.activityid = :activityid \
+            ) \
+          ) \
+        ) \
+        WHERE scoop.postcomment.activityid = :activityid',
+        {replacements:{activityid: activityid}, type: database.QueryTypes.SELECT})
+      }
       res.send("Success");
     });
   })
