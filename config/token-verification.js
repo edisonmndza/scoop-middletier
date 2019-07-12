@@ -7,8 +7,6 @@ var privatekey = fs.readFileSync(path, "utf8");
 
 // authorization for token in request header
 const authorization = function(request, response, next) {
-  next();
-  return;
   const token = request.headers["authorization"]
     .match(/(?:"[^"]*"|^[^"]*$)/)[0] //grabbing the text that is within the quotations
     .replace(/"/g, ""); // removing the quotation marks from the token that was received in the request header
