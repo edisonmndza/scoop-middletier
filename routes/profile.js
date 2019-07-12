@@ -69,12 +69,15 @@ router.get("/initialfill/:userid", authorization, (request, response) => {
 router.get("/posttextfill/:userclicked/:currentuser", authorization, (request, response) => {
     var userClicked = request.params.userclicked
     var currentuser = request.params.currentuser
-    database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
+    database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference,\
+        postimagepath, likecount, liketype, commentcount, firstname, lastname, savedactivityid, saveduserid, savedstatus FROM scoop.postcomment\
     LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
     LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
-    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
-    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid = :id \
+    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON scoop.postcomment.userid = t5.userid \
+    LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, CASE\
+        WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :currentuser) t4 ON scoop.postcomment.activityid = t4.savedactivityid\
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.userid = :id\
     ORDER BY scoop.postcomment.createddate DESC', 
     {replacements: {id: userClicked, currentuser: currentuser}, type: database.QueryTypes.SELECT})
     .then(results => {
@@ -258,11 +261,14 @@ function jsonConcat(o1, o2) {
 router.get("/getlikes/:userclicked/:currentuser", authorization, (request, response) => {
     var userClicked = request.params.userclicked
     var currentuser = request.params.currentuser
-    database.query('SELECT coalesce(B.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, B.activestatus, B.createddate, activitytype, B.userid, B.activityreference, postimagepath, likecount, A.liketype, commentcount, firstname, lastname FROM scoop.likes A, scoop.postcomment B \
+    database.query('SELECT coalesce(B.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, B.activestatus, B.createddate, activitytype,\
+        B.userid, B.activityreference, postimagepath, likecount, A.liketype, commentcount, firstname, lastname, savedactivityid, saveduserid, savedstatus FROM scoop.likes A, scoop.postcomment B \
     LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON B.activityid = t1.duplicateactivityid \
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON B.activityid = t2.likesactivityid \
     LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY activityreference) t3 ON B.activityid = t3.activityreference \
-    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON B.userid = t4.userid \
+    INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON B.userid = t5.userid \
+    LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, CASE\
+        WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :currentuser) t4 ON B.activityid = t4.savedactivityid\
     WHERE  A.activestatus = 1 AND B.activitytype = 1 AND B.activestatus = 1 AND B.activityid = A.activityid AND A.userid = :id AND A.liketype = 1\
     ORDER BY B.createddate DESC', 
     {replacements: {id: userClicked, currentuser: currentuser}, type: database.QueryTypes.SELECT})
