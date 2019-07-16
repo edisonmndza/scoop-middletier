@@ -279,4 +279,19 @@ router.get("/getlikes/:userclicked/:currentuser", authorization, (request, respo
 
 })
 
+/**
+ * - Function to get list of addresses for all buildings in the database
+ * - Used in the app's search building activity
+ */
+router.get("/getallbuildings", authorization, (request, response) => {
+   
+    database.query('SELECT concat(address, \', \', city, \', \', province) as building, scoop.buildings.buildingid FROM scoop.buildings ORDER BY province', 
+    {replacements: {}, type: database.QueryTypes.SELECT})
+    .then(results => {
+        console.log(results)
+        response.send(results)
+    })
+
+})
+
 module.exports = router

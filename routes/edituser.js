@@ -19,7 +19,7 @@ router.get("/getinitial/:userid", authorization, (request, response) => {
   // Query that gets all the information needed
   database
     .query(
-      "SELECT * FROM scoop.users LEFT JOIN scoop.positions ON scoop.users.positionid = scoop.positions.positionid LEFT JOIN scoop.divisions ON scoop.users.divisionid = scoop.divisions.divisionid LEFT JOIN scoop.buildings ON scoop.users.buildingid = scoop.buildings.buildingid WHERE userid = :id",
+      "SELECT *, concat(address, \', \', city, \', \', province) as address FROM scoop.users LEFT JOIN scoop.positions ON scoop.users.positionid = scoop.positions.positionid LEFT JOIN scoop.divisions ON scoop.users.divisionid = scoop.divisions.divisionid LEFT JOIN scoop.buildings ON scoop.users.buildingid = scoop.buildings.buildingid WHERE userid = :id",
       { replacements: { id: userid }, type: database.QueryTypes.SELECT }
     )
     .then(result => {
@@ -40,6 +40,8 @@ router.get("/getinitial/:userid", authorization, (request, response) => {
 
         // Sends the information back to the app
         response.send(output);
+        console.log("noSocial");
+        console.log(output);
       });
     });
 });
@@ -105,24 +107,28 @@ router.get("/divisionchanged/:division", authorization, (request, response) => {
 // Updates db with all changed information
 router.put("/updatedatabase", authorization, (request, response) => {
   // Gets the data from all the edit texts from the app
-  const {
+  var {
     userid,
     firstname,
     lastname,
     position,
     division,
-    building,
+    buildingid,
     linkedin,
     twitter,
     facebook,
     instagram,
-    city,
-    province,
     image
   } = request.body;
 
+  // app sends -1 for buildingid if value is null
+  if (buildingid == '-1'){
+    buildingid = null;
+  }
+
   // variables for the ids
-  var positionid, buildingid, divisionid;
+  //var positionid, buildingid, divisionid;
+  var positionid, divisionid;
 
   // buffer for the encoded image that is passed
   let buff = new Buffer(image, "base64");
@@ -141,13 +147,11 @@ router.put("/updatedatabase", authorization, (request, response) => {
   // Promise for getting all the ids before updating the user object
   Promise.all([
     positionReturned(position),
-    buildingReturned(building, city, province),
     divisionReturned(division)
   ]).then(results => {
     // Assigning the ids to the variables
     positionid = results[0];
-    buildingid = results[1];
-    divisionid = results[2];
+    divisionid = results[1];
 
     console.log(" BOY " + positionid)
 
@@ -164,7 +168,7 @@ router.put("/updatedatabase", authorization, (request, response) => {
     };
 
     // Updating the user table with all the information provided
-    userModel.update(updatedUserData, { where: { userid: userid } });
+    userModel.update(updatedUserData, { where: { userid: userid} });
   });
 
   // Promise for inputting all the user's social medias into the user social table
