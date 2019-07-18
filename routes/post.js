@@ -9,6 +9,7 @@ const router = express.Router();
 const savedPostModel = database.import("../models/savedposts");
 const LikeModel = database.import('../models/likes');
 const NotificationsModel = database.import('../models/notifications');
+const reportModel = database.import("../models/reporttable");
 
 
 router.post("/add-post", authorization, (req, res) => {
@@ -342,32 +343,6 @@ router.post("/save-post", authorization, (request, response) => {
     });
   });
 
-
-/**
- * Description: Saves a post into the database given the respective activityid of the post and the userid of the user saving the post
- */
-router.get("/check-if-saved/:activityid/:userid", authorization, (request, response) => {
-  const activityid = request.params.activityid; 
-  const userid = request.params.userid;
-  typeof undefined;
-  database.query('SELECT scoop.savedposts.activityid, scoop.savedposts.userid FROM scoop.savedposts\
-  WHERE scoop.savedposts.activityid = :activityid AND scoop.savedposts.userid = :userid',
-  {replacements: {userid: userid, activityid: activityid}})
-    .then(result => {
-
-      if (result[0].length == 0) {
-        console.log("Post is not saved for this user")
-        response.send("Feel free to save post");
-      } else {
-        console.log("Post already saved for this user")
-        response.send("Post already saved");
-      }
-    }).catch(function(err) {
-      console.log(err.body);
-    });
-  });
-
-
   
 /**
  * Description: Gets a users saved posts activityid's from the savedposts table based on the given userid and returns the necessary feed post data 
@@ -437,5 +412,50 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
         console.log(err);
     })
   })
+
+
+/**
+ * Description:  
+ */
+  router.post("/report-post", authorization, (request, response) => {
+    const {activityId, userId, reportReason, reportBody} = request.body;
+    //send the object to the savedposts table in the scoopdb database.
+    reportModel
+      .create({
+        activityid: activityId,
+        userid: userId,
+        reason: reportReason,
+        body: reportBody,
+      })
+      .then(() => {
+        console.log("Post Reported")
+        response.send("Success");
+      }).catch(function(err) {
+        console.log("Failed to report post. Post may have already been reported.")
+        console.log(err.body);
+        response.send("Fail")
+      });
+    });
+
+
+/**
+ * Description:  
+ */
+router.get('/report-send-email/:activityId/:posterId/:userId',authorization,(request, response)=>{
+  const activityId = request.params.activityId; 
+  const posterId = request.params.posterId; 
+  const userId = request.params.userId; 
+  database.query('SELECT activityid, scoop.reporttable.userid, reportedfirstname, reportedlastname, reason, body, createddate, senderfirstname, senderlastname FROM scoop.reporttable\
+  INNER JOIN (SELECT scoop.users.firstname AS reportedfirstname, scoop.users.lastname AS reportedlastname, scoop.users.userid AS posterid FROM scoop.users) t0 ON t0.posterid = :posterid \
+  INNER JOIN (SELECT scoop.users.firstname AS senderfirstname, scoop.users.lastname AS senderlastname, scoop.users.userid AS userid FROM scoop.users) t1 ON scoop.reporttable.userid = t1.userid \
+  WHERE scoop.reporttable.activityid = :activityid AND scoop.reporttable.userid = :userid',
+  {replacements: {activityid: activityId, posterid: posterId, userid: userId}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      console.log(results[0])
+      response.send(results[0]);
+  });
+});
+
+
 
 module.exports = router;
