@@ -273,4 +273,57 @@ router.get("/getlikes/:userclicked/:currentuser", authorization, (request, respo
 
 })
 
+/**
+* Description: get text and user image of all profiles matching a search query
+*/
+router.get('/search/:query', authorization, (request, response)=>{
+
+    function splitQueryString(t) {
+        console.log(t)
+        console.log(typeof(t))
+        return t.split(" | ");
+    }
+    
+    function getSearchMatchQuery(array) {
+        var result = ''
+        for (var i = 0; i < array.length; i++) {
+            if (i>0) {
+                result += 'OR '
+            }
+            result += 'CONCAT(A.firstname, A.lastname, B.positionname, C.division_en, C.division_fr, \
+                D.buildingname_en, D.buildingname_fr, D.address, D.city, D.province) ILIKE \'%'+array[i]+'%\' '
+        }
+        return result
+    }
+    
+    var names = splitQueryString(request.params.query)
+    console.log(names)
+    console.log(typeof(names))
+
+    var matchQuery = getSearchMatchQuery(names)
+  
+    database.query(' \
+    SELECT A.userid, A.firstname, A.lastname, B.positionname, C.division_en, C.division_fr, \
+    D.buildingname_en, D.buildingname_fr, D.address, D.city, D.province, E.profileimage \
+    FROM scoop.users AS A \
+    LEFT JOIN scoop.positions AS B ON B.positionid = A.positionid \
+    LEFT JOIN scoop.divisions AS C ON C.divisionid = A.divisionid \
+    LEFT JOIN scoop.buildings AS D ON D.buildingid = A.buildingid \
+    LEFT JOIN scoop.users AS E ON E.userid = A.userid \
+    WHERE A.userstatus = 1 \
+    AND (' + matchQuery + 
+    ')',
+    {replacements: {}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        console.log(results.length)
+        response.send(results);
+    })
+  })
+
 module.exports = router
