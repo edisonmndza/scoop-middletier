@@ -67,7 +67,7 @@ database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id',
         (\'english\', \
           COALESCE( \
             ( \
-            SELECT concat(scoop.postcomment.posttitle, scoop.postcomment.posttext) \
+            SELECT concat(scoop.postcomment.posttitle, \' \', scoop.postcomment.posttext) \
             FROM scoop.postcomment \
             WHERE scoop.postcomment.activityid = :activityid \
             ) \

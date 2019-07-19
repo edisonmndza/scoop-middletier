@@ -59,11 +59,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.ENUM("official","community"),
       allowNull: true
     }
-    // ,
-    // searchtokens: {
-    //   type: tsvector, 
-    //   allowNull: true
-    // }
   }, {
     schema: 'scoop',
     tableName: 'postcomment'
