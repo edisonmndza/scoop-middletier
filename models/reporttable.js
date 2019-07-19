@@ -25,12 +25,12 @@ module.exports = function(sequelize, DataTypes) {
     },
     activestatus: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: true, 
       defaultValue: '1'
     },
     createddate: {
       type: DataTypes.DATE,
-      allowNull: true,
+      allowNull: false,
       defaultValue: sequelize.fn('now')
     },
     body: {
