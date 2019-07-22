@@ -54,8 +54,28 @@ database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id',
       posttext: posttext,
       postimagepath: imagepath,
       feed: feed,
+      searchtokens: null
     })
-    .then(() => {
+    .then((results) => {
+      const activitytype = results.dataValues.activitytype
+      const activityid = results.dataValues.activityid
+      console.log(activitytype)
+      if (activitytype == 1) {
+        database.query(' \
+        UPDATE scoop.postcomment \
+        SET searchtokens = to_tsvector \
+        (\'english\', \
+          COALESCE( \
+            ( \
+            SELECT concat(scoop.postcomment.posttitle, \' \', scoop.postcomment.posttext) \
+            FROM scoop.postcomment \
+            WHERE scoop.postcomment.activityid = :activityid \
+            ) \
+          ) \
+        ) \
+        WHERE scoop.postcomment.activityid = :activityid',
+        {replacements:{activityid: activityid}, type: database.QueryTypes.SELECT})
+      }
       res.send("Success");
     });
   })
@@ -243,6 +263,52 @@ INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
   WHERE postcomment.activitytype = 2 AND postcomment.activestatus = 1 AND postcomment.activityreference = :activityReference\
   ORDER BY postcomment.createddate DESC',
   {replacements: {activityReference: activityReference}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      for(i=0; i<results.length; i++){                        
+          var userImagePath = results[i].profileimage;                
+          var userImageFile = fs.readFileSync(userImagePath);
+          var userbase64data = userImageFile.toString('base64');
+          results[i].profileimage = userbase64data;
+      }
+      console.log(results.length)
+      response.send(results);
+  })
+})
+
+
+/**
+ * Description: gets text for searched posts
+ */
+router.get('/search/text/:userid/:query',authorization,(request, response)=>{
+  const userid = request.params.userid;
+  const query = request.params.query;
+  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, \
+	posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, \
+	postimagepath, likecount, liketype, commentcount, firstname, lastname \
+	FROM scoop.postcomment \
+	LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
+	LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
+	LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+	INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+	WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.searchtokens @@ to_tsquery(:query) \
+	ORDER BY scoop.postcomment.createddate DESC', 
+  {replacements: {id:userid, query: query}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      console.log(results)
+      response.send(results);
+  })
+})
+
+/**
+ * Description: gets user images for searched posts
+ */
+router.get('/search/images/:query', authorization, (request, response)=>{
+  const query = request.params.query;
+  database.query('SELECT users.profileimage AS profileimage FROM scoop.postcomment AS postcomment \
+  INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
+  WHERE postcomment.activitytype = 1 AND postcomment.activestatus = 1 AND postcomment.searchtokens @@ to_tsquery(:query) \
+  ORDER BY postcomment.createddate DESC',
+  {replacements: {query: query}, type: database.QueryTypes.SELECT})
   .then(results=>{
       for(i=0; i<results.length; i++){                        
           var userImagePath = results[i].profileimage;                
