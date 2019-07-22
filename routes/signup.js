@@ -46,19 +46,25 @@ router.post("/register", (request, response) => {
   // Encrypting the password
   passwordData = saltHashPassword(password);
 
-  // Inserting the data into the database
-  userModel
-    .create({
-      firstname: firstname,
-      lastname: lastname,
-      email: email,
-      salt: passwordData.salt,
-      passwordhash: passwordData.passwordHash,
-      profileimage: defaultImagePath,
-      userstatus: 1
-    })
-    .then(() => {
+  // checking if email exists
+  database.query("SELECT users.email FROM scoop.users WHERE email = :email",
+  { replacements: {email: email}, type: database.QueryTypes.SELECT })
+  .then(results=>{
+    console.log(results);
+    if (results.length == 0) {
+       // Inserting the data into the database
       userModel
+      .create({
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        salt: passwordData.salt,
+        passwordhash: passwordData.passwordHash,
+        profileimage: defaultImagePath,
+        userstatus: 1
+      })
+      .then(() => {
+        userModel
         .findAll({
           attributes: ["userid"],
           where: {
@@ -67,7 +73,6 @@ router.post("/register", (request, response) => {
         })
         .then(results => {
           const userid = results[0].userid; // grabbing the user id
-
           // validing a token for the successfully signed up user
           // token payload contains the user id
           jwt.sign({ userid: userid }, privatekey, (err, token) => {
@@ -79,7 +84,17 @@ router.post("/register", (request, response) => {
             response.send(token); // send the token as the server response to a successful register
           });
         });
-    });
+      });
+    }
+    else {
+      response.send("ERROR");
+    }
+  }).catch(function(err) {
+    if (err) {
+      console.log(err);
+      response.send("ERROR_EMAIL_EXISTS");
+    }
+  }); 
 });
 
 router.post("/login", (request, response) => {
