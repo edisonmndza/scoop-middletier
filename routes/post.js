@@ -395,6 +395,10 @@ router.put('/update-like', authorization, (request, response)=>{
  */
 router.post("/save", authorization, (request, response) => {
   const {activityid, userid} = request.body;
+
+  var modifieddate = new Date()
+  console.log(modifieddate)
+  
   database.query("SELECT activityid, userid FROM scoop.savedposts\
   WHERE activityid = :activityid AND userid = :userid",
   { replacements: {activityid: activityid, userid: userid}, type: database.QueryTypes.SELECT })
@@ -414,9 +418,9 @@ router.post("/save", authorization, (request, response) => {
           response.send("Failed to save post. Please try again later.")
         });
       } else {
-        database.query("UPDATE scoop.savedposts SET activestatus = 1\
+        database.query("UPDATE scoop.savedposts SET activestatus = 1, modifieddate = :modifieddate\
         WHERE activityid = :activityid AND userid = :userid",
-        { replacements: {activityid: activityid, userid: userid}, type: database.QueryTypes.SELECT })
+        { replacements: {activityid: activityid, userid: userid, modifieddate: modifieddate}, type: database.QueryTypes.SELECT })
         .then(()=>{
           console.log("Valid save")
           response.send("Post successfully saved!")
@@ -437,18 +441,18 @@ router.post("/save", authorization, (request, response) => {
 router.get('/display-saved-post/:userid',authorization,(request, response)=>{
   const userid = request.params.userid; 
   console.log(userid)
-  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid, t3.savedactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype,\
+  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid, t3.savedactivityid) AS activityid, posttitle, posttext, activestatus, savedmodifieddate, activitytype,\
     scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname,\
     savedactivestatus, savedactivityid, saveduserid, savedstatus FROM scoop.postcomment \
   LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
   LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
-  LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.createddate AS savedcreateddate, scoop.savedposts.activestatus as savedactivestatus, CASE\
+  LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.modifieddate AS savedmodifieddate, scoop.savedposts.activestatus as savedactivestatus, CASE\
     WHEN scoop.savedposts.userid IS NOT NULL AND scoop.savedposts.activestatus = 1\
     THEN TRUE ELSE FALSE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :id) t3 ON scoop.postcomment.activityid = t3.savedactivityid\
   LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t4 ON scoop.postcomment.activityid = t4.activityreference \
   INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON scoop.postcomment.userid = t5.userid \
   WHERE scoop.postcomment.activitytype = 1 ANd t3.savedactivestatus = 1 AND t3.saveduserid = :id\
-  ORDER BY t3.savedcreateddate DESC', 
+  ORDER BY t3.savedmodifieddate DESC', 
   {replacements: {id:userid}, type: database.QueryTypes.SELECT})
   .then(results=>{
       console.log(results)
@@ -468,7 +472,7 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
     INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid\
     INNER JOIN scoop.savedposts ON scoop.savedposts.activityid = scoop.postcomment.activityid\
     WHERE scoop.postcomment.activitytype = 1 AND scoop.savedposts.activestatus = 1 AND scoop.savedposts.userid = :id\
-    ORDER BY scoop.savedposts.createddate DESC',
+    ORDER BY scoop.savedposts.modifieddate DESC',
     {replacements: {id: userid}, type: database.QueryTypes.SELECT})
     .then(results=>{
         console.log(results)
@@ -507,9 +511,12 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
 router.post("/unsave", authorization, (request, response) => {
   const {activityid, userid} = request.body;
 
-  database.query("UPDATE scoop.savedposts SET activestatus = 0\
+  var modifieddate = new Date()
+  console.log(modifieddate)
+
+  database.query("UPDATE scoop.savedposts SET activestatus = 0, modifieddate = :modifieddate\
   WHERE activityid = :activityid AND userid = :userid",
-  { replacements: {activityid: activityid, userid: userid}, type: database.QueryTypes.SELECT })
+  { replacements: {activityid: activityid, userid: userid, modifieddate: modifieddate}, type: database.QueryTypes.SELECT })
   .then(results=>{
       console.log(results);
       console.log("Valid unsave")
