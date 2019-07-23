@@ -395,8 +395,6 @@ router.put('/update-like', authorization, (request, response)=>{
  */
 router.post("/save", authorization, (request, response) => {
   const {activityid, userid} = request.body;
-
-
   database.query("SELECT activityid, userid FROM scoop.savedposts\
   WHERE activityid = :activityid AND userid = :userid",
   { replacements: {activityid: activityid, userid: userid}, type: database.QueryTypes.SELECT })
