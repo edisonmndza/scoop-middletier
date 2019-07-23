@@ -38,3 +38,6 @@ app.use("/profile", require('./routes/profile'))
 
 // app.use("/display-post", require("./routes/display-post"));
 
+app.use("/report", require("./routes/report"));
+
+
