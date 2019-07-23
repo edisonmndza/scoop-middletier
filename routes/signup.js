@@ -45,6 +45,8 @@ router.post("/register", (request, response) => {
 
   // Encrypting the password
   passwordData = saltHashPassword(password);
+  var str = email;
+  var pattern = "^[a-zA-Z]+\.+[a-zA-Z]+([0-9]?)+@canada\.ca$";
 
   // checking if email exists
   database.query("SELECT users.email FROM scoop.users WHERE email = :email",
@@ -52,49 +54,47 @@ router.post("/register", (request, response) => {
   .then(results=>{
     console.log(results);
     if (results.length == 0) {
-       // Inserting the data into the database
-      userModel
-      .create({
-        firstname: firstname,
-        lastname: lastname,
-        email: email,
-        salt: passwordData.salt,
-        passwordhash: passwordData.passwordHash,
-        profileimage: defaultImagePath,
-        userstatus: 1
-      })
-      .then(() => {
+      if (str.match(pattern)){ 
+        // Inserting the data into the database
         userModel
-        .findAll({
-          attributes: ["userid"],
-          where: {
-            email: email
-          }
+        .create({
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          salt: passwordData.salt,
+          passwordhash: passwordData.passwordHash,
+          profileimage: defaultImagePath,
+          userstatus: 1
         })
-        .then(results => {
-          const userid = results[0].userid; // grabbing the user id
-          // validing a token for the successfully signed up user
-          // token payload contains the user id
-          jwt.sign({ userid: userid }, privatekey, (err, token) => {
-            if (err) {
-              console.log(err);
+        .then(() => {
+          userModel
+          .findAll({
+            attributes: ["userid"],
+            where: {
+              email: email
             }
-            console.log(userid); // user id
-            console.log(token); // token that was created
-            response.send(token); // send the token as the server response to a successful register
+          })
+          .then(results => {
+            const userid = results[0].userid; // grabbing the user id
+            // validing a token for the successfully signed up user
+            // token payload contains the user id
+            jwt.sign({ userid: userid }, privatekey, (err, token) => {
+              if (err) {
+                console.log(err);
+              }
+              console.log(userid); // user id
+              console.log(token); // token that was created
+              response.send(token); // send the token as the server response to a successful register
+            });
           });
         });
-      });
-    }
-    else {
-      response.send("ERROR");
-    }
-  }).catch(function(err) {
-    if (err) {
-      console.log(err);
+      } else {
+        response.send("ERROR_EMAIL_FORMAT");
+      }       
+    } else {
       response.send("ERROR_EMAIL_EXISTS");
     }
-  }); 
+  });   
 });
 
 router.post("/login", (request, response) => {
