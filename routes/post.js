@@ -54,8 +54,28 @@ database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id',
       posttext: posttext,
       postimagepath: imagepath,
       feed: feed,
+      searchtokens: null
     })
-    .then(() => {
+    .then((results) => {
+      const activitytype = results.dataValues.activitytype
+      const activityid = results.dataValues.activityid
+      console.log(activitytype)
+      if (activitytype == 1) {
+        database.query(' \
+        UPDATE scoop.postcomment \
+        SET searchtokens = to_tsvector \
+        (\'english\', \
+          COALESCE( \
+            ( \
+            SELECT concat(scoop.postcomment.posttitle, \' \', scoop.postcomment.posttext) \
+            FROM scoop.postcomment \
+            WHERE scoop.postcomment.activityid = :activityid \
+            ) \
+          ) \
+        ) \
+        WHERE scoop.postcomment.activityid = :activityid',
+        {replacements:{activityid: activityid}, type: database.QueryTypes.SELECT})
+      }
       res.send("Success");
     });
   })
@@ -65,17 +85,21 @@ database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id',
 
 /*===============================Merged from display-post.js================================*/
 
-/**
+/**f
  * Description: gets post for specified feed
  */
 router.get('/feed-text/:feed/:userid',authorization,(request, response)=>{
   const feed = request.params.feed;
   const userid = request.params.userid;
-  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
+  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate,\
+    activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname,\
+    savedactivityid, saveduserid, savedstatus FROM scoop.postcomment \
   LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
   LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
   LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
   INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+  LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, CASE\
+    WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :id) t5 ON scoop.postcomment.activityid = t5.savedactivityid\
   WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND feed = :feed \
   ORDER BY scoop.postcomment.createddate DESC', 
   {replacements: {id:userid, feed: feed}, type: database.QueryTypes.SELECT})
@@ -139,11 +163,14 @@ router.get('/detailed-post/text/:activityid/:userid', authorization,(request, re
   const queryactivityid = request.params.activityid;
   const userid = request.params.userid;
   database.query('SELECT * FROM ( \
-          SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
+          SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid,\
+            scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname, savedactivityid, saveduserid, savedstatus FROM scoop.postcomment \
           LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
           LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
           LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
           INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+          LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, CASE\
+            WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :id) t5 ON scoop.postcomment.activityid = t5.savedactivityid\
           WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 \
       ) AS posts WHERE activityid = :activityid \
       LIMIT 1;',
@@ -250,6 +277,52 @@ INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
 
 
 /**
+ * Description: gets text for searched posts
+ */
+router.get('/search/text/:userid/:query',authorization,(request, response)=>{
+  const userid = request.params.userid;
+  const query = request.params.query;
+  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, \
+	posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, \
+	postimagepath, likecount, liketype, commentcount, firstname, lastname \
+	FROM scoop.postcomment \
+	LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
+	LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
+	LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+	INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+	WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.searchtokens @@ to_tsquery(:query) \
+	ORDER BY scoop.postcomment.createddate DESC', 
+  {replacements: {id:userid, query: query}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      console.log(results)
+      response.send(results);
+  })
+})
+
+/**
+ * Description: gets user images for searched posts
+ */
+router.get('/search/images/:query', authorization, (request, response)=>{
+  const query = request.params.query;
+  database.query('SELECT users.profileimage AS profileimage FROM scoop.postcomment AS postcomment \
+  INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
+  WHERE postcomment.activitytype = 1 AND postcomment.activestatus = 1 AND postcomment.searchtokens @@ to_tsquery(:query) \
+  ORDER BY postcomment.createddate DESC',
+  {replacements: {query: query}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      for(i=0; i<results.length; i++){                        
+          var userImagePath = results[i].profileimage;                
+          var userImageFile = fs.readFileSync(userImagePath);
+          var userbase64data = userImageFile.toString('base64');
+          results[i].profileimage = userbase64data;
+      }
+      console.log(results.length)
+      response.send(results);
+  })
+})
+
+
+/**
  * Description: Inserts a new like or updates the existing like in the likes table. 
  * Update the notifications table
  */
@@ -328,13 +401,12 @@ router.post("/save-post", authorization, (request, response) => {
     })
     .then(() => {
       console.log("Valid save")
-      response.send("Valid save");
+      response.send("Post successfully saved!");
     }).catch(function(err) {
       console.log(err.body);
-      response.send("Invalid save - post already saved")
+      response.send("Failed to save post. Please try again later.")
     });
   });
-
 
   
 /**
@@ -343,13 +415,16 @@ router.post("/save-post", authorization, (request, response) => {
 router.get('/display-saved-post/:userid',authorization,(request, response)=>{
   const userid = request.params.userid; 
   console.log(userid)
-  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid, t3.savedactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname FROM scoop.postcomment \
+  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid, t3.savedactivityid) AS activityid, posttitle, posttext, activestatus, createddate, activitytype,\
+    scoop.postcomment.userid, scoop.postcomment.activityreference, postimagepath, likecount, liketype, commentcount, firstname, lastname,\
+    savedactivityid, saveduserid, savedstatus FROM scoop.postcomment \
   LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
   LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
-  LEFT JOIN (SELECT scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.userid AS userid, scoop.savedposts.createddate AS savedcreateddate FROM scoop.savedposts) t3 ON scoop.postcomment.activityid = t3.savedactivityid\
+  LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.createddate AS savedcreateddate, CASE\
+    WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :id) t3 ON scoop.postcomment.activityid = t3.savedactivityid\
   LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t4 ON scoop.postcomment.activityid = t4.activityreference \
   INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON scoop.postcomment.userid = t5.userid \
-  WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND t3.userid = :id\
+  WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND t3.saveduserid = :id\
   ORDER BY t3.savedcreateddate DESC', 
   {replacements: {id:userid}, type: database.QueryTypes.SELECT})
   .then(results=>{
@@ -432,7 +507,7 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
                 // get all activityid(s) of comments on the post
                 database.query("SELECT activityid FROM scoop.postcomment WHERE scoop.postcomment.activityreference = :activityid", { replacements: { activityid: activityid } })
                   .then((result) => {
-                    for (var i = 0; i < result[0].length; i++){
+                    for (var i = 0; i < result[0].length; i++){ // loop through all comments on the post
                       // for each comment on the post, update active status of any likes the comment has
                       database.query("UPDATE scoop.likes SET activestatus = 0 WHERE scoop.likes.activityid = :activityid", { replacements: { activityid: result[0][i].activityid } });
                       // for each comment on the post, update active status of any notifications the comment has 

@@ -21,17 +21,21 @@ module.exports = function(sequelize, DataTypes) {
     },
     reason: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
     activestatus: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: true, 
       defaultValue: '1'
     },
-    datecreated: {
+    createddate: {
       type: DataTypes.DATE,
-      allowNull: true,
+      allowNull: false,
       defaultValue: sequelize.fn('now')
+    },
+    body: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   }, {
     schema: 'scoop',
