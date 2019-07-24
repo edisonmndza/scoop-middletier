@@ -179,7 +179,7 @@ router.put("/updatedatabase", authorization, (request, response) => {
     instagramReturned(userid, instagram)
   ]);
 
-  response.send("success")
+  response.send("Success")
 });
 
 // Function to help concatenate the json array on initial fill

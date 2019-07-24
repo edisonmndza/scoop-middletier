@@ -8,6 +8,18 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.fn('uuid_generate_v4'),
       primaryKey: true
     },
+    userid: {
+      type: DataTypes.UUIDV4,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'userid'
+      }
+    },
+    activitytype: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
     posttitle: {
       type: DataTypes.STRING,
       allowNull: true
@@ -31,18 +43,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       defaultValue: sequelize.fn('now')
     },
-    activitytype: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    userid: {
-      type: DataTypes.UUIDV4,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'userid'
-      }
-    },
     activityreference: {
       type: DataTypes.UUIDV4,
       allowNull: true,
@@ -58,9 +58,12 @@ module.exports = function(sequelize, DataTypes) {
     feed: {
       type: DataTypes.ENUM("official","community"),
       allowNull: true
+    },
+    searchtokens: {
+      type: "TSVECTOR",
+      allowNull: true
     }
   }, {
-    schema: 'scoop',
     tableName: 'postcomment'
   });
 };

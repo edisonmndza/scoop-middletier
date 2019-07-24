@@ -54,8 +54,28 @@ database.query('SELECT officialcertified FROM scoop.users WHERE userid = :id',
       posttext: posttext,
       postimagepath: imagepath,
       feed: feed,
+      searchtokens: null
     })
-    .then(() => {
+    .then((results) => {
+      const activitytype = results.dataValues.activitytype
+      const activityid = results.dataValues.activityid
+      console.log(activitytype)
+      if (activitytype == 1) {
+        database.query(' \
+        UPDATE scoop.postcomment \
+        SET searchtokens = to_tsvector \
+        (\'english\', \
+          COALESCE( \
+            ( \
+            SELECT concat(scoop.postcomment.posttitle, \' \', scoop.postcomment.posttext) \
+            FROM scoop.postcomment \
+            WHERE scoop.postcomment.activityid = :activityid \
+            ) \
+          ) \
+        ) \
+        WHERE scoop.postcomment.activityid = :activityid',
+        {replacements:{activityid: activityid}, type: database.QueryTypes.SELECT})
+      }
       res.send("Success");
     });
   })
@@ -257,6 +277,52 @@ INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
 
 
 /**
+ * Description: gets text for searched posts
+ */
+router.get('/search/text/:userid/:query',authorization,(request, response)=>{
+  const userid = request.params.userid;
+  const query = request.params.query;
+  database.query('SELECT coalesce(scoop.postcomment.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, \
+	posttitle, posttext, activestatus, createddate, activitytype, scoop.postcomment.userid, scoop.postcomment.activityreference, \
+	postimagepath, likecount, liketype, commentcount, firstname, lastname \
+	FROM scoop.postcomment \
+	LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
+	LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :id) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
+	LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+	INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t4 ON scoop.postcomment.userid = t4.userid \
+	WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.postcomment.searchtokens @@ to_tsquery(:query) \
+	ORDER BY scoop.postcomment.createddate DESC', 
+  {replacements: {id:userid, query: query}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      console.log(results)
+      response.send(results);
+  })
+})
+
+/**
+ * Description: gets user images for searched posts
+ */
+router.get('/search/images/:query', authorization, (request, response)=>{
+  const query = request.params.query;
+  database.query('SELECT users.profileimage AS profileimage FROM scoop.postcomment AS postcomment \
+  INNER JOIN scoop.users AS users ON users.userid = postcomment.userid \
+  WHERE postcomment.activitytype = 1 AND postcomment.activestatus = 1 AND postcomment.searchtokens @@ to_tsquery(:query) \
+  ORDER BY postcomment.createddate DESC',
+  {replacements: {query: query}, type: database.QueryTypes.SELECT})
+  .then(results=>{
+      for(i=0; i<results.length; i++){                        
+          var userImagePath = results[i].profileimage;                
+          var userImageFile = fs.readFileSync(userImagePath);
+          var userbase64data = userImageFile.toString('base64');
+          results[i].profileimage = userbase64data;
+      }
+      console.log(results.length)
+      response.send(results);
+  })
+})
+
+
+/**
  * Description: Inserts a new like or updates the existing like in the likes table. 
  * Update the notifications table
  */
@@ -342,32 +408,6 @@ router.post("/save-post", authorization, (request, response) => {
     });
   });
 
-
-/**
- * Description: Saves a post into the database given the respective activityid of the post and the userid of the user saving the post
- */
-router.get("/check-if-saved/:activityid/:userid", authorization, (request, response) => {
-  const activityid = request.params.activityid; 
-  const userid = request.params.userid;
-  typeof undefined;
-  database.query('SELECT scoop.savedposts.activityid, scoop.savedposts.userid FROM scoop.savedposts\
-  WHERE scoop.savedposts.activityid = :activityid AND scoop.savedposts.userid = :userid',
-  {replacements: {userid: userid, activityid: activityid}})
-    .then(result => {
-
-      if (result[0].length == 0) {
-        console.log("Post is not saved for this user")
-        response.send("Feel free to save post");
-      } else {
-        console.log("Post already saved for this user")
-        response.send("Post already saved");
-      }
-    }).catch(function(err) {
-      console.log(err.body);
-    });
-  });
-
-
   
 /**
  * Description: Gets a users saved posts activityid's from the savedposts table based on the given userid and returns the necessary feed post data 
@@ -437,5 +477,8 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
         console.log(err);
     })
   })
+
+
+
 
 module.exports = router;
