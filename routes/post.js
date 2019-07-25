@@ -479,6 +479,50 @@ router.get('/display-saved-post/:userid',authorization,(request, response)=>{
   })
 
 
+  /**
+   * Removes a post or comment
+   * - Also removes all notifications and likes for the post/comment
+   * - Will cascade remove all comments on a post that is deleted
+   */
+  router.put('/remove-post-comment/', authorization, (request, response)=>{
+    const{activityid} = request.body;
+          // if activity type = 2, just set activestatus of the comment to 0
+          // if activity type = 1, have to set every commnet with that activityid as a referenceid to activestatus = 0
+          // also set the post/comment itself to active status = 0
+          database.query("SELECT activitytype FROM scoop.postcomment WHERE scoop.postcomment.activityid = :activityid",
+            { replacements: { activityid: activityid } })
+            .then((result) => {
+              // update active status of post/comment itself
+              database.query("UPDATE scoop.postcomment SET activestatus = 0 WHERE scoop.postcomment.activityid = :activityid", { replacements: { activityid: activityid } });
+              // update active status of any likes the post/comment has
+              database.query("UPDATE scoop.likes SET activestatus = 0 WHERE scoop.likes.activityid = :activityid", { replacements: { activityid: activityid } });
+              // update active status of any notificaitons for the post/comment itself
+              database.query("UPDATE scoop.notifications SET activestatus = 0 WHERE scoop.notifications.activityid = :activityid", { replacements: { activityid: activityid } });
 
+              if (result[0][0].activitytype == 1) { // POST
+                // set activestatus of any rows in savedposts to 0 for this post
+                database.query("UPDATE scoop.savedposts SET activestatus = 0 WHERE scoop.savedposts.activityid = :activityid", { replacements: { activityid: activityid } })
+                // set all comments on this post to activestatus = 0
+                database.query("UPDATE scoop.postcomment SET activestatus = 0 WHERE scoop.postcomment.activityreference = :activityid", { replacements: { activityid: activityid } })
+                // get all activityid(s) of comments on the post
+                database.query("SELECT activityid FROM scoop.postcomment WHERE scoop.postcomment.activityreference = :activityid", { replacements: { activityid: activityid } })
+                  .then((result) => {
+                    for (var i = 0; i < result[0].length; i++){ // loop through all comments on the post
+                      // for each comment on the post, update active status of any likes the comment has
+                      database.query("UPDATE scoop.likes SET activestatus = 0 WHERE scoop.likes.activityid = :activityid", { replacements: { activityid: result[0][i].activityid } });
+                      // for each comment on the post, update active status of any notifications the comment has 
+                      database.query("UPDATE scoop.notifications SET activestatus = 0 WHERE scoop.notifications.activityid = :activityid", { replacements: { activityid: result[0][i].activityid } });
+                    }
+                    response.send("Post Deleted");
+                  })
+                return;
+              }
+              else if (result[0][0].activitytype == 2) { // COMMENT
+                response.send("Comment Deleted");
+                return;
+              }
+
+            })
+  })
 
 module.exports = router;
