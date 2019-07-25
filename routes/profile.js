@@ -74,7 +74,7 @@ router.get("/posttextfill/:userclicked/:currentuser", authorization, (request, r
         postimagepath, likecount, liketype, commentcount, firstname, lastname, savedactivestatus, savedactivityid, saveduserid, savedstatus FROM scoop.postcomment\
     LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
-    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment WHERE scoop.postcomment.activestatus = 1 GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
     INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON scoop.postcomment.userid = t5.userid \
     LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.activestatus AS savedactivestatus, CASE\
         WHEN scoop.savedposts.userid IS NOT NULL AND scoop.savedposts.activestatus = 1\
@@ -269,7 +269,7 @@ router.get("/getlikes/text/:userclicked/:currentuser", authorization, (request, 
         savedactivestatus, savedactivityid, saveduserid, savedstatus FROM scoop.likes A, scoop.postcomment B \
     LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON B.activityid = t1.duplicateactivityid \
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON B.activityid = t2.likesactivityid \
-    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY activityreference) t3 ON B.activityid = t3.activityreference \
+    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment WHERE scoop.postcomment.activestatus = 1 GROUP BY activityreference) t3 ON B.activityid = t3.activityreference \
     INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON B.userid = t5.userid \
     LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, scoop.savedposts.activestatus AS savedactivestatus, CASE\
         WHEN scoop.savedposts.userid IS NOT NULL AND scoop.savedposts.activestatus = 1\
