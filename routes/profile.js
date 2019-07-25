@@ -261,7 +261,7 @@ function jsonConcat(o1, o2) {
  *  userclicked: the user whom you wish to get all posts they have liked 
  *  currentuser: the user who is currently logged in. You need this because the app shows wether the logged in user has liked the post or not
  */
-router.get("/getlikes/:userclicked/:currentuser", authorization, (request, response) => {
+router.get("/getlikes/text/:userclicked/:currentuser", authorization, (request, response) => {
     var userClicked = request.params.userclicked
     var currentuser = request.params.currentuser
     database.query('SELECT coalesce(B.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, B.activestatus, B.createddate, activitytype,\
@@ -283,6 +283,29 @@ router.get("/getlikes/:userclicked/:currentuser", authorization, (request, respo
     })
 
 })
+
+
+router.get('/getlikes/images/:userid', authorization, (request, response)=>{
+    const userid = request.params.userid; 
+
+    database.query('SELECT scoop.users.profileimage AS profileimage FROM scoop.postcomment \
+    INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid \
+    INNER JOIN scoop.likes ON scoop.postcomment.activityid = scoop.likes.activityid \
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.likes.userid = :id AND scoop.likes.liketype = 1\
+    ORDER BY scoop.postcomment.createddate DESC',
+    {replacements: {id: userid}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        console.log(results.length)
+        response.send(results);
+    })
+})
+
 
 /**
  * - Function to get list of addresses for all buildings in the database
