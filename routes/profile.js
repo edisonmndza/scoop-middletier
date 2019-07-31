@@ -73,7 +73,7 @@ router.get("/posttextfill/:userclicked/:currentuser", authorization, (request, r
         postimagepath, likecount, liketype, commentcount, firstname, lastname, savedactivityid, saveduserid, savedstatus FROM scoop.postcomment\
     LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON scoop.postcomment.activityid = t1.duplicateactivityid \
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON scoop.postcomment.activityid = t2.likesactivityid \
-    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
+    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment WHERE scoop.postcomment.activestatus = 1 GROUP BY scoop.postcomment.activityreference) t3 ON scoop.postcomment.activityid = t3.activityreference \
     INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON scoop.postcomment.userid = t5.userid \
     LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, CASE\
         WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :currentuser) t4 ON scoop.postcomment.activityid = t4.savedactivityid\
@@ -258,14 +258,14 @@ function jsonConcat(o1, o2) {
  *  userclicked: the user whom you wish to get all posts they have liked 
  *  currentuser: the user who is currently logged in. You need this because the app shows wether the logged in user has liked the post or not
  */
-router.get("/getlikes/:userclicked/:currentuser", authorization, (request, response) => {
+router.get("/getlikes/text/:userclicked/:currentuser", authorization, (request, response) => {
     var userClicked = request.params.userclicked
     var currentuser = request.params.currentuser
     database.query('SELECT coalesce(B.activityid, t1.duplicateactivityid, t2.likesactivityid) AS activityid, posttitle, posttext, B.activestatus, B.createddate, activitytype,\
         B.userid, B.activityreference, postimagepath, likecount, A.liketype, commentcount, firstname, lastname, savedactivityid, saveduserid, savedstatus FROM scoop.likes A, scoop.postcomment B \
     LEFT JOIN (SELECT SUM(scoop.likes.liketype) AS likecount, scoop.likes.activityid AS duplicateactivityid FROM scoop.likes GROUP BY scoop.likes.activityid) t1 ON B.activityid = t1.duplicateactivityid \
     LEFT JOIN (SELECT scoop.likes.liketype, scoop.likes.activityid AS likesactivityid FROM scoop.likes WHERE scoop.likes.userid = :currentuser) t2 ON B.activityid = t2.likesactivityid \
-    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment GROUP BY activityreference) t3 ON B.activityid = t3.activityreference \
+    LEFT JOIN (SELECT COUNT(*) AS commentcount, scoop.postcomment.activityreference AS activityreference FROM scoop.postcomment WHERE scoop.postcomment.activestatus = 1 GROUP BY activityreference) t3 ON B.activityid = t3.activityreference \
     INNER JOIN (SELECT scoop.users.firstname AS firstname, scoop.users.lastname AS lastname, scoop.users.userid AS userid FROM scoop.users) t5 ON B.userid = t5.userid \
     LEFT JOIN (SELECT scoop.savedposts.userid as saveduserid, scoop.savedposts.activityid AS savedactivityid, CASE\
         WHEN scoop.savedposts.userid = null THEN FALSE ELSE TRUE END AS savedstatus FROM scoop.savedposts WHERE scoop.savedposts.userid = :currentuser) t4 ON B.activityid = t4.savedactivityid\
@@ -278,6 +278,29 @@ router.get("/getlikes/:userclicked/:currentuser", authorization, (request, respo
     })
 
 })
+
+
+router.get('/getlikes/images/:userid', authorization, (request, response)=>{
+    const userid = request.params.userid; 
+
+    database.query('SELECT scoop.users.profileimage AS profileimage FROM scoop.postcomment \
+    INNER JOIN scoop.users ON scoop.postcomment.userid = scoop.users.userid \
+    INNER JOIN scoop.likes ON scoop.postcomment.activityid = scoop.likes.activityid \
+    WHERE scoop.postcomment.activitytype = 1 AND scoop.postcomment.activestatus = 1 AND scoop.likes.userid = :id AND scoop.likes.liketype = 1\
+    ORDER BY scoop.postcomment.createddate DESC',
+    {replacements: {id: userid}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        console.log(results.length)
+        response.send(results);
+    })
+})
+
 
 /**
  * - Function to get list of addresses for all buildings in the database
@@ -293,5 +316,60 @@ router.get("/getallbuildings", authorization, (request, response) => {
     })
 
 })
+
+
+/**
+ *  Description: get text and user image of all profiles matching a search query
+ * 
+ */
+router.get('/search/:query', authorization, (request, response)=>{
+
+    function splitQueryString(t) {
+        console.log(t)
+        console.log(typeof(t))
+        return t.split(" | ");
+    }
+    
+    function getSearchMatchQuery(array) {
+        var result = ''
+        for (var i = 0; i < array.length; i++) {
+            if (i>0) {
+                result += 'OR '
+            }
+            result += 'CONCAT(A.firstname, A.lastname, B.positionname, C.division_en, C.division_fr, \
+                D.buildingname_en, D.buildingname_fr, D.address, D.city, D.province) ILIKE \'%'+array[i]+'%\' '
+        }
+        return result
+    }
+    
+    var names = splitQueryString(request.params.query)
+    console.log(names)
+    console.log(typeof(names))
+
+    var matchQuery = getSearchMatchQuery(names)
+  
+    database.query(' \
+    SELECT A.userid, A.firstname, A.lastname, B.positionname, C.division_en, C.division_fr, \
+    D.buildingname_en, D.buildingname_fr, D.address, D.city, D.province, E.profileimage \
+    FROM scoop.users AS A \
+    LEFT JOIN scoop.positions AS B ON B.positionid = A.positionid \
+    LEFT JOIN scoop.divisions AS C ON C.divisionid = A.divisionid \
+    LEFT JOIN scoop.buildings AS D ON D.buildingid = A.buildingid \
+    LEFT JOIN scoop.users AS E ON E.userid = A.userid \
+    WHERE A.userstatus = 1 \
+    AND (' + matchQuery + 
+    ')',
+    {replacements: {}, type: database.QueryTypes.SELECT})
+    .then(results=>{
+        for(i=0; i<results.length; i++){                        
+            var userImagePath = results[i].profileimage;                
+            var userImageFile = fs.readFileSync(userImagePath);
+            var userbase64data = userImageFile.toString('base64');
+            results[i].profileimage = userbase64data;
+        }
+        console.log(results.length)
+        response.send(results);
+    })
+  })
 
 module.exports = router
